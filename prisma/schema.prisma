@@ -1,0 +1,236 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// Normal schema change (dev)     npx prisma migrate dev
+// First time DB setup npx prisma migrate dev
+// Just edited Prisma Client usage npx prisma generate
+
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+  SUPER_ADMIN
+}
+
+/* =======================
+   INSTITUTION
+======================= */
+
+model Institution {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // SCHOOL | COLLEGE
+  createdAt DateTime @default(now())
+
+  users     User[]
+  classes   Class[]
+  inventory Inventory[]
+}
+
+/* =======================
+   USER
+======================= */
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  phone         String?
+  password      String
+  role          Role
+
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+
+  version   Int      @default(1) // optimistic lock
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/* =======================
+   STUDENT
+======================= */
+
+model StudentProfile {
+  id        String @id @default(uuid())
+  userId    String @unique
+  rollNo    String
+  guardian  String?
+  address   String?
+
+  user        User @relation(fields: [userId], references: [id])
+  enrollments Enrollment[]
+  fees        Fee[]
+  results     Result[]
+  attendance  Attendance[]
+  issuedItems IssuedItem[]
+
+  version Int @default(1)
+}
+
+/* =======================
+   TEACHER
+======================= */
+
+model TeacherProfile {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  salary    Float
+  isClassTeacher Boolean @default(false)
+
+  user        User @relation(fields: [userId], references: [id])
+  assignments TeacherAssignment[]
+  attendance  Attendance[]
+  documents   Document[]
+  salaries    SalaryHistory[]
+
+  version Int @default(1)
+}
+
+/* =======================
+   ACADEMIC STRUCTURE
+======================= */
+
+model Class {
+  id            String @id @default(uuid())
+  name          String
+  institutionId String
+
+  institution Institution @relation(fields: [institutionId], references: [id])
+  sections    Section[]
+}
+
+model Section {
+  id      String @id @default(uuid())
+  name    String
+  classId String
+
+  class        Class @relation(fields: [classId], references: [id])
+  enrollments  Enrollment[]
+  assignments  TeacherAssignment[]
+}
+
+model Subject {
+  id   String @id @default(uuid())
+  name String
+}
+
+/* =======================
+   RELATIONS
+======================= */
+
+model Enrollment {
+  id        String @id @default(uuid())
+  studentId String
+  sectionId String
+
+  student StudentProfile @relation(fields: [studentId], references: [id])
+  section Section        @relation(fields: [sectionId], references: [id])
+}
+
+model TeacherAssignment {
+  id        String @id @default(uuid())
+  teacherId String
+  sectionId String
+  subjectId String
+
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
+  section Section        @relation(fields: [sectionId], references: [id])
+  subject Subject        @relation(fields: [subjectId], references: [id])
+}
+
+/* =======================
+   ATTENDANCE
+======================= */
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      DateTime
+  status    String   // PRESENT | ABSENT
+
+  studentId String?
+  teacherId String?
+
+  student StudentProfile? @relation(fields: [studentId], references: [id])
+  teacher TeacherProfile? @relation(fields: [teacherId], references: [id])
+}
+
+/* =======================
+   FEES & RESULTS
+======================= */
+
+model Fee {
+  id        String   @id @default(uuid())
+  amount    Float
+  status    String   // PAID | PENDING
+  dueDate   DateTime
+
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+}
+
+model Result {
+  id        String @id @default(uuid())
+  grade     String
+  marks     Float
+
+  studentId String
+  subjectId String
+
+  student StudentProfile @relation(fields: [studentId], references: [id])
+  subject Subject        @relation(fields: [subjectId], references: [id])
+}
+
+/* =======================
+   INVENTORY
+======================= */
+
+model Inventory {
+  id            String @id @default(uuid())
+  name          String
+  quantity      Int
+
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+}
+
+model IssuedItem {
+  id        String   @id @default(uuid())
+  itemName  String
+  issuedAt  DateTime
+
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+}
+
+/* =======================
+   DOCUMENTS & SALARY
+======================= */
+
+model Document {
+  id        String @id @default(uuid())
+  title     String
+  fileUrl   String
+
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+}
+
+model SalaryHistory {
+  id        String   @id @default(uuid())
+  amount    Float
+  paidAt    DateTime
+
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+}
