@@ -6,6 +6,15 @@ import Link from "next/link";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+    setIsOpen(false);
+  };
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,13 +28,13 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#about" className="text-gray-600 hover:text-black transition-colors">
+            <a href="#about" onClick={(e) => scrollToSection(e, "about")} className="text-gray-600 hover:text-black transition-colors cursor-pointer">
               About
             </a>
-            <a href="#features" className="text-gray-600 hover:text-black transition-colors">
+            <a href="#features" onClick={(e) => scrollToSection(e, "features")} className="text-gray-600 hover:text-black transition-colors cursor-pointer">
               Features
             </a>
-            <a href="#team" className="text-gray-600 hover:text-black transition-colors">
+            <a href="#team" onClick={(e) => scrollToSection(e, "team")} className="text-gray-600 hover:text-black transition-colors cursor-pointer">
               Team
             </a>
             <Link
@@ -59,22 +68,22 @@ export default function Navbar() {
             <div className="flex flex-col space-y-3">
               <a
                 href="#about"
-                className="text-gray-600 hover:text-black transition-colors py-2"
-                onClick={() => setIsOpen(false)}
+                className="text-gray-600 hover:text-black transition-colors py-2 cursor-pointer"
+                onClick={(e) => scrollToSection(e, "about")}
               >
                 About
               </a>
               <a
                 href="#features"
-                className="text-gray-600 hover:text-black transition-colors py-2"
-                onClick={() => setIsOpen(false)}
+                className="text-gray-600 hover:text-black transition-colors py-2 cursor-pointer"
+                onClick={(e) => scrollToSection(e, "features")}
               >
                 Features
               </a>
               <a
                 href="#team"
-                className="text-gray-600 hover:text-black transition-colors py-2"
-                onClick={() => setIsOpen(false)}
+                className="text-gray-600 hover:text-black transition-colors py-2 cursor-pointer"
+                onClick={(e) => scrollToSection(e, "team")}
               >
                 Team
               </a>
