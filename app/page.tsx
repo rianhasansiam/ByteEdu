@@ -1,9 +1,25 @@
-import Image from "next/image";
+import {
+  Navbar,
+  HeroSection,
+  AboutSection,
+  FeaturesSection,
+  StatsSection,
+  TeamSection,
+  Footer,
+} from "./components";
 
 export default function Home() {
   return (
     <>
-    <h1>this is home page............</h1>
+      <Navbar />
+      <main>
+        <HeroSection />
+        <AboutSection />
+        <FeaturesSection />
+        <StatsSection />
+        <TeamSection />
+      </main>
+      <Footer />
     </>
   );
 }

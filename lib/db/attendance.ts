@@ -2,90 +2,148 @@
 
 import { unstable_cache, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { AttendanceStatus } from "@/app/generated/prisma/client";
 
+type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE";
 
+// ============================================
+// QUERIES (READ)
+// ============================================
 
-export const getAttendances = unstable_cache(() =>
-    prisma.attendance.findMany(),
+export const getAttendances = unstable_cache(
+  () =>
+    prisma.attendance.findMany({
+      orderBy: { date: "desc" },
+      include: {
+        student: { include: { user: true } },
+        teacher: { include: { user: true } },
+      },
+    }),
   ["attendances"],
   { tags: ["attendances"] }
 );
 
-
-
-
-export const getAttendanceById = unstable_cache((id: string) =>
-    prisma.attendance.findMany({where: { id: id } }),
-
-  ["attendance-by-user"],
+export const getAttendanceById = unstable_cache(
+  (id: string) =>
+    prisma.attendance.findUnique({
+      where: { id },
+      include: {
+        student: { include: { user: true } },
+        teacher: { include: { user: true } },
+      },
+    }),
+  ["attendance"],
   { tags: ["attendances"] }
 );
 
+export const getStudentAttendance = unstable_cache(
+  (studentId: string) =>
+    prisma.attendance.findMany({
+      where: { studentId },
+      orderBy: { date: "desc" },
+    }),
+  ["student-attendance"],
+  { tags: ["attendances"] }
+);
 
+export const getTeacherAttendance = unstable_cache(
+  (teacherId: string) =>
+    prisma.attendance.findMany({
+      where: { teacherId },
+      orderBy: { date: "desc" },
+    }),
+  ["teacher-attendance"],
+  { tags: ["attendances"] }
+);
 
+export const getAttendanceByDate = unstable_cache(
+  (date: Date) =>
+    prisma.attendance.findMany({
+      where: { date },
+      include: {
+        student: { include: { user: true } },
+        teacher: { include: { user: true } },
+      },
+    }),
+  ["attendance-by-date"],
+  { tags: ["attendances"] }
+);
 
+// ============================================
+// MUTATIONS (WRITE)
+// ============================================
 
-export async function createAttendance(data: { userId: number; status: AttendanceStatus;}) {
-  const attendance = await prisma.attendance.create({data: { userId: data.userId,  status: data.status }});
+export async function createStudentAttendance(data: {
+  studentId: string;
+  date: Date;
+  status: AttendanceStatus;
+}) {
+  const attendance = await prisma.attendance.create({
+    data: {
+      studentId: data.studentId,
+      date: data.date,
+      status: data.status,
+    },
+  });
 
   revalidateTag("attendances", "default");
   return attendance;
 }
 
-
-
-
-
-
-
-export async function updateAttendance(id: string,data: {  status?: AttendanceStatus; }) {
-  const attendance = await prisma.attendance.update({ where: { id }, data,});
+export async function createTeacherAttendance(data: {
+  teacherId: string;
+  date: Date;
+  status: AttendanceStatus;
+}) {
+  const attendance = await prisma.attendance.create({
+    data: {
+      teacherId: data.teacherId,
+      date: data.date,
+      status: data.status,
+    },
+  });
 
   revalidateTag("attendances", "default");
   return attendance;
 }
 
+export async function updateAttendance(
+  id: string,
+  data: { status?: AttendanceStatus }
+) {
+  const attendance = await prisma.attendance.update({
+    where: { id },
+    data,
+  });
 
-
-
+  revalidateTag("attendances", "default");
+  return attendance;
+}
 
 export async function deleteAttendance(id: string) {
-  await prisma.attendance.delete({ where: { id }});
+  await prisma.attendance.delete({ where: { id } });
 
   revalidateTag("attendances", "default");
 }
 
+// ============================================
+// BULK OPERATIONS
+// ============================================
 
-/*
-============================================
-FRONTEND USAGE EXAMPLES
-============================================
+export async function createBulkStudentAttendance(
+  records: Array<{
+    studentId: string;
+    date: Date;
+    status: AttendanceStatus;
+  }>
+) {
+  const attendances = await prisma.attendance.createMany({
+    data: records,
+    skipDuplicates: true,
+  });
 
-
-
-  const attendances = await getAttendances();
-// ----------------------------------------
-  async function handleSubmit(formData: FormData) {
-    await createAttendance({
-      userId: Number(formData.get("userId")),
-      status: formData.get("status") as "PRESENT" | "ABSENT" | "LATE",
-    });
-  }
-// ----------------------------------------
-    <button onClick={() => deleteAttendance(id)}> Delete </button>
-// ----------------------------------------
-  const [status, setStatus] = useState(currentStatus);
-
-  async function handleChange(newStatus: string) {
-    setStatus(newStatus);
-    await updateAttendance(id, { status: newStatus as "PRESENT" | "ABSENT" | "LATE" });
-  }
-
-
-
-
-*/
+  revalidateTag("attendances", "default");
+  return attendances;
+}
 
 
 

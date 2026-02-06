@@ -29,10 +29,13 @@ model Institution {
   name      String
   type      String   // SCHOOL | COLLEGE
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   users     User[]
   classes   Class[]
   inventory Inventory[]
+
+  @@index([type])
 }
 
 /* =======================
@@ -43,18 +46,22 @@ model User {
   id            String   @id @default(uuid())
   email         String   @unique
   phone         String?
+  provider      String?  // Google | Credential
   password      String
   role          Role
 
   institutionId String?
-  institution   Institution? @relation(fields: [institutionId], references: [id])
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
 
   studentProfile StudentProfile?
   teacherProfile TeacherProfile?
 
-  version   Int      @default(1) // optimistic lock
+  version   Int      @default(1) // optimistic lock when use multiple instances of the app
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([institutionId])
+  @@index([role])
 }
 
 /* =======================
@@ -62,20 +69,22 @@ model User {
 ======================= */
 
 model StudentProfile {
-  id        String @id @default(uuid())
-  userId    String @unique
+  id        String   @id @default(uuid())
+  userId    String   @unique
   rollNo    String
   guardian  String?
   address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User @relation(fields: [userId], references: [id])
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
   enrollments Enrollment[]
   fees        Fee[]
   results     Result[]
   attendance  Attendance[]
   issuedItems IssuedItem[]
 
-  version Int @default(1)
+  version Int @default(1) // optimistic lock when use multiple instances of the app
 }
 
 /* =======================
@@ -83,12 +92,14 @@ model StudentProfile {
 ======================= */
 
 model TeacherProfile {
-  id        String  @id @default(uuid())
-  userId    String  @unique
-  salary    Float
-  isClassTeacher Boolean @default(false)
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  salary         Float
+  isClassTeacher Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user        User @relation(fields: [userId], references: [id])
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignments TeacherAssignment[]
   attendance  Attendance[]
   documents   Document[]
@@ -106,8 +117,11 @@ model Class {
   name          String
   institutionId String
 
-  institution Institution @relation(fields: [institutionId], references: [id])
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   sections    Section[]
+
+  @@unique([name, institutionId]) // Class names unique per institution
+  @@index([institutionId])
 }
 
 model Section {
@@ -115,14 +129,20 @@ model Section {
   name    String
   classId String
 
-  class        Class @relation(fields: [classId], references: [id])
+  class        Class @relation(fields: [classId], references: [id], onDelete: Cascade)
   enrollments  Enrollment[]
   assignments  TeacherAssignment[]
+
+  @@unique([name, classId]) // Section names unique per class
+  @@index([classId])
 }
 
 model Subject {
   id   String @id @default(uuid())
-  name String
+  name String @unique
+
+  teacherAssignments TeacherAssignment[]
+  results            Result[]
 }
 
 /* =======================
@@ -130,23 +150,34 @@ model Subject {
 ======================= */
 
 model Enrollment {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   studentId String
   sectionId String
+  createdAt DateTime @default(now())
 
-  student StudentProfile @relation(fields: [studentId], references: [id])
-  section Section        @relation(fields: [sectionId], references: [id])
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section Section        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sectionId]) // Prevent duplicate enrollments
+  @@index([studentId])
+  @@index([sectionId])
 }
 
 model TeacherAssignment {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   teacherId String
   sectionId String
   subjectId String
+  createdAt DateTime @default(now())
 
-  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
-  section Section        @relation(fields: [sectionId], references: [id])
-  subject Subject        @relation(fields: [subjectId], references: [id])
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  section Section        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subject Subject        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@unique([teacherId, sectionId, subjectId]) // Prevent duplicate assignments
+  @@index([teacherId])
+  @@index([sectionId])
+  @@index([subjectId])
 }
 
 /* =======================
@@ -155,14 +186,20 @@ model TeacherAssignment {
 
 model Attendance {
   id        String   @id @default(uuid())
-  date      DateTime
-  status    String   // PRESENT | ABSENT
+  date      DateTime @db.Date
+  status    String   // PRESENT | ABSENT | LATE
 
   studentId String?
   teacherId String?
 
-  student StudentProfile? @relation(fields: [studentId], references: [id])
-  teacher TeacherProfile? @relation(fields: [teacherId], references: [id])
+  student StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date]) // One attendance record per student per day
+  @@unique([teacherId, date]) // One attendance record per teacher per day
+  @@index([date])
+  @@index([studentId])
+  @@index([teacherId])
 }
 
 /* =======================
@@ -172,23 +209,35 @@ model Attendance {
 model Fee {
   id        String   @id @default(uuid())
   amount    Float
-  status    String   // PAID | PENDING
+  status    String   // PAID | PENDING | OVERDUE
   dueDate   DateTime
+  paidAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   studentId String
-  student   StudentProfile @relation(fields: [studentId], references: [id])
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([status])
+  @@index([dueDate])
 }
 
 model Result {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   grade     String
   marks     Float
+  examType  String?  // MIDTERM | FINAL | QUIZ
+  createdAt DateTime @default(now())
 
   studentId String
   subjectId String
 
-  student StudentProfile @relation(fields: [studentId], references: [id])
-  subject Subject        @relation(fields: [subjectId], references: [id])
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@index([studentId])
+  @@index([subjectId])
 }
 
 /* =======================
@@ -196,21 +245,28 @@ model Result {
 ======================= */
 
 model Inventory {
-  id            String @id @default(uuid())
+  id            String   @id @default(uuid())
   name          String
   quantity      Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   institutionId String
-  institution   Institution @relation(fields: [institutionId], references: [id])
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
 }
 
 model IssuedItem {
-  id        String   @id @default(uuid())
-  itemName  String
-  issuedAt  DateTime
+  id         String    @id @default(uuid())
+  itemName   String
+  issuedAt   DateTime  @default(now())
+  returnedAt DateTime?
 
   studentId String
-  student   StudentProfile @relation(fields: [studentId], references: [id])
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
 }
 
 /* =======================
@@ -218,19 +274,27 @@ model IssuedItem {
 ======================= */
 
 model Document {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   title     String
   fileUrl   String
+  createdAt DateTime @default(now())
 
   teacherId String
-  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
 }
 
 model SalaryHistory {
   id        String   @id @default(uuid())
   amount    Float
   paidAt    DateTime
+  month     Int      // 1-12
+  year      Int
 
   teacherId String
-  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, month, year]) // Prevent duplicate salary entries
+  @@index([teacherId])
 }
