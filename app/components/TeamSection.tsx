@@ -47,10 +47,10 @@ export default function TeamSection() {
         <div className="bg-gray-100 rounded-2xl p-8 mb-12">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="w-24 h-24 bg-black rounded-2xl flex items-center justify-center text-white text-4xl font-bold">
-              EM
+              BE
             </div>
             <div className="text-center md:text-left">
-              <h3 className="text-2xl font-bold text-gray-900">EduManage Solutions</h3>
+              <h3 className="text-2xl font-bold text-gray-900">ByteEdu Managment Solutions</h3>
               <p className="text-gray-600 mt-2 max-w-2xl">
                 We are a software development company specializing in educational technology solutions. 
                 Our mission is to transform how educational institutions operate through innovative 
