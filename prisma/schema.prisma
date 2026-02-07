@@ -21,12 +21,21 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  institution String?
+  password    String
+  role        Role     @default(USER)
+  picture     String?
+  // Teacher specific fields
+  teacherId   String?
+  class       String?
+  section     String?
+  // Student specific field
+  roll        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
