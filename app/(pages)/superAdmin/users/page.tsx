@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllUsers, getUniqueInstitutions, getUserStats } from "@/lib/db/users";
-import { FilterState } from "./components/types";
+import Hydrate from "@/lib/store/hydrator";
+import { FilterState, User } from "./components/types";
 import UserStatsCardsClient from "./components/UserStatsCards";
 import UsersFiltersClient from "./components/UsersFilters";
 import UsersTableClient from "./components/UsersTable";
@@ -98,9 +99,13 @@ export default async function UsersPage({ searchParams }: PageProps) {
 
       </div>
 
-      <UserStatsCardsClient stats={stats} roleFilter={filters.roleFilter} />
-      <UsersFiltersClient filters={filters} institutions={institutions} hasActiveFilters={!!hasActiveFilters} />
-      <UsersTableClient users={filteredUsers} hasActiveFilters={!!hasActiveFilters} />
+      <Hydrate name="users" data={filteredUsers} />
+      <Hydrate name="userStats" data={stats} />
+      <Hydrate name="userInstitutions" data={institutions} />
+
+      <UserStatsCardsClient roleFilter={filters.roleFilter} />
+      <UsersFiltersClient filters={filters} hasActiveFilters={!!hasActiveFilters} />
+      <UsersTableClient hasActiveFilters={!!hasActiveFilters} />
 
 
     </div>

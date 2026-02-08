@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import toast from "react-hot-toast";
+import { useAppSelector } from "@/lib/store/hooks";
 import { deleteUser } from "@/lib/db/users";
-import { User, getRoleBadgeColor } from "./types";
+import { getRoleBadgeColor } from "./types";
 
 function ActionMenu({ userId, onClose, onDelete }: { userId: string; onClose: () => void; onDelete: (id: string) => void }) {
   return (
@@ -36,11 +38,11 @@ function ActionMenu({ userId, onClose, onDelete }: { userId: string; onClose: ()
 }
 
 type Props = {
-  users: User[];
   hasActiveFilters: boolean;
 }
 
-export default function UsersTableClient({ users, hasActiveFilters }: Props) {
+export default function UsersTableClient({ hasActiveFilters }: Props) {
+  const users = useAppSelector((s) => s.users.users);
   const router = useRouter();
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
@@ -49,10 +51,10 @@ export default function UsersTableClient({ users, hasActiveFilters }: Props) {
 
     try {
       await deleteUser(userId);
-      router.refresh();
+      toast.success("User deleted successfully");
     } catch (error) {
       console.error("Failed to delete user:", error);
-      alert("Failed to delete user");
+      toast.error("Failed to delete user");
     }
     setShowActionMenu(null);
   };

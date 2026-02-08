@@ -17,6 +17,10 @@ export const CACHE_TAGS = {
   subscriptions: "subscriptions",
   subscriptionById: (id: string) => `subscription-${id}`,
 
+  // Plans
+  plans: "plans",
+  planById: (id: string) => `plan-${id}`,
+
   // Transactions
   transactions: "transactions",
   transactionById: (id: string) => `transaction-${id}`,

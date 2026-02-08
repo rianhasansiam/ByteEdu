@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag, unstable_cache } from "next/cache";
+import { updateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/app/generated/prisma/client";
 import { CACHE_TAGS } from "@/lib/cache-tags";
@@ -101,7 +101,7 @@ export const getUserStats = unstable_cache(
 );
 
 // ============================================
-// MUTATIONS (WRITE) - with revalidateTag
+// MUTATIONS (WRITE) - with updateTag
 // ============================================
 
 export async function createUser(data: {
@@ -133,10 +133,10 @@ export async function createUser(data: {
     },
   });
 
-  // Revalidate all user-related caches
-  revalidateTag(CACHE_TAGS.users, "default");
-  revalidateTag(CACHE_TAGS.userStats, "default");
-  revalidateTag(CACHE_TAGS.userInstitutions, "default");
+  // Update all user-related caches
+  updateTag(CACHE_TAGS.users);
+  updateTag(CACHE_TAGS.userStats);
+  updateTag(CACHE_TAGS.userInstitutions);
 
   return user;
 }
@@ -158,10 +158,10 @@ export async function updateUser(
     data,
   });
 
-  // Revalidate all user-related caches
-  revalidateTag(CACHE_TAGS.users, "default");
-  revalidateTag(CACHE_TAGS.userStats, "default");
-  revalidateTag(CACHE_TAGS.userInstitutions, "default");
+  // Update all user-related caches
+  updateTag(CACHE_TAGS.users);
+  updateTag(CACHE_TAGS.userStats);
+  updateTag(CACHE_TAGS.userInstitutions);
 
   return user;
 }
@@ -171,10 +171,10 @@ export async function deleteUser(id: string) {
     where: { id },
   });
 
-  // Revalidate all user-related caches
-  revalidateTag(CACHE_TAGS.users, "default");
-  revalidateTag(CACHE_TAGS.userStats, "default");
-  revalidateTag(CACHE_TAGS.userInstitutions, "default");
+  // Update all user-related caches
+  updateTag(CACHE_TAGS.users);
+  updateTag(CACHE_TAGS.userStats);
+  updateTag(CACHE_TAGS.userInstitutions);
 }
 
 export async function updateUserRole(id: string, role: Role) {
@@ -183,9 +183,9 @@ export async function updateUserRole(id: string, role: Role) {
     data: { role },
   });
 
-  // Revalidate all user-related caches
-  revalidateTag(CACHE_TAGS.users, "default");
-  revalidateTag(CACHE_TAGS.userStats, "default");
+  // Update all user-related caches
+  updateTag(CACHE_TAGS.users);
+  updateTag(CACHE_TAGS.userStats);
 
   return user;
 }

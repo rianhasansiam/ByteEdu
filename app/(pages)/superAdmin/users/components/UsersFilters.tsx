@@ -2,15 +2,16 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
+import { useAppSelector } from "@/lib/store/hooks";
 import { FilterState } from "./types";
 
 type Props = {
   filters: FilterState;
-  institutions: string[];
   hasActiveFilters: boolean;
 }
 
-export default function UsersFiltersClient({ filters, institutions, hasActiveFilters }: Props) {
+export default function UsersFiltersClient({ filters, hasActiveFilters }: Props) {
+  const institutions = useAppSelector((s) => s.users.institutions);
   const router = useRouter();
   const searchParams = useSearchParams();
 

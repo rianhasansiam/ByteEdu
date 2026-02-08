@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { UserStats } from "./types";
+import { useAppSelector } from "@/lib/store/hooks";
 
 type Props = {
-  stats: UserStats;
   roleFilter: string;
 }
 
-export default function UserStatsCardsClient({ stats, roleFilter }: Props) {
+export default function UserStatsCardsClient({ roleFilter }: Props) {
+  const stats = useAppSelector((s) => s.users.stats);
   const router = useRouter();
   const searchParams = useSearchParams();
 
