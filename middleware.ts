@@ -12,6 +12,7 @@ export default withAuth(
       "/adminSignup": ["SUPER_ADMIN"],
       "/teacherSignup": ["SUPER_ADMIN", "ADMIN"],
       "/studentSignup": ["SUPER_ADMIN", "ADMIN", "TEACHER"],
+      "/superAdmin": ["SUPER_ADMIN"],
     };
 
     // Check if current path matches any protected route
@@ -54,5 +55,6 @@ export const config = {
     "/adminSignup/:path*",
     "/teacherSignup/:path*",
     "/studentSignup/:path*",
+    "/superAdmin/:path*",
   ],
 };

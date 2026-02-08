@@ -13,7 +13,7 @@ export default function Navbar() {
 
   // Check if user can access dashboard (not USER role)
   const canAccessDashboard = userRole && ["ADMIN", "SUPER_ADMIN", "TEACHER", "STUDENT"].includes(userRole);
-console.log("User Role:", userRole);
+
   // Get signup options based on role
   const getSignupOptions = () => {
     if (!session) return [];
@@ -86,7 +86,15 @@ console.log("User Role:", userRole);
               <div className="w-20 h-10 bg-gray-200 animate-pulse rounded-lg"></div>
             ) : session ? (
               <>
-                {canAccessDashboard && (
+                {userRole === "SUPER_ADMIN" && (
+                  <Link
+                    href="/superAdmin/dashboard"
+                    className="text-gray-600 hover:text-black transition-colors"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
+                {canAccessDashboard && userRole !== "SUPER_ADMIN" && (
                   <Link
                     href="/dashboard"
                     className="text-gray-600 hover:text-black transition-colors"
@@ -204,7 +212,15 @@ console.log("User Role:", userRole);
                 <div className="w-full h-10 bg-gray-200 animate-pulse rounded-lg"></div>
               ) : session ? (
                 <>
-                  {canAccessDashboard && (
+                  {userRole === "SUPER_ADMIN" && (
+                    <Link
+                      href="/superAdmin/dashboard"
+                      className="text-gray-600 hover:text-black transition-colors py-2"
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                  {canAccessDashboard && userRole !== "SUPER_ADMIN" && (
                     <Link
                       href="/dashboard"
                       className="text-gray-600 hover:text-black transition-colors py-2"
