@@ -1,24 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+
+type Institution = {
+  id: string;
+  name: string;
+  status: string;
+};
 
 export default function AdminSignup() {
+  const { data: session, status: sessionStatus } = useSession();
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    institution: "",
+    institutionId: "",
     password: "",
     confirmPassword: "",
   });
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch institutions
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      try {
+        const response = await fetch("/api/institutions");
+        const data = await response.json();
+        if (data.institutions) {
+          setInstitutions(data.institutions);
+        }
+      } catch (err) {
+        console.error("Failed to fetch institutions:", err);
+        setError("Failed to load institutions");
+      } finally {
+        setLoadingInstitutions(false);
+      }
+    };
+
+    if (session?.user.role === "SUPER_ADMIN") {
+      fetchInstitutions();
+    }
+  }, [session]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -36,6 +69,11 @@ export default function AdminSignup() {
       return;
     }
 
+    if (!formData.institutionId) {
+      setError("Please select an institution");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -48,7 +86,7 @@ export default function AdminSignup() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          institution: formData.institution,
+          institutionId: formData.institutionId,
           password: formData.password,
         }),
       });
@@ -64,7 +102,7 @@ export default function AdminSignup() {
         name: "",
         email: "",
         phone: "",
-        institution: "",
+        institutionId: "",
         password: "",
         confirmPassword: "",
       });
@@ -74,6 +112,15 @@ export default function AdminSignup() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking session
+  if (sessionStatus === "loading" || !session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -111,6 +158,45 @@ export default function AdminSignup() {
                 {success}
               </div>
             )}
+
+            {/* Institution Field */}
+            <div>
+              <label htmlFor="institutionId" className="block text-sm font-medium text-gray-700 mb-1">
+                Institution <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <select
+                  id="institutionId"
+                  name="institutionId"
+                  required
+                  value={formData.institutionId}
+                  onChange={handleChange}
+                  disabled={loadingInstitutions}
+                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none"
+                >
+                  <option value="">
+                    {loadingInstitutions ? "Loading institutions..." : "Select an institution"}
+                  </option>
+                  {institutions
+                    .filter((inst) => inst.status === "active")
+                    .map((inst) => (
+                      <option key={inst.id} value={inst.id}>
+                        {inst.name}
+                      </option>
+                    ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
             {/* Name Field */}
             <div>
@@ -180,30 +266,6 @@ export default function AdminSignup() {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                   placeholder="Enter phone number"
-                />
-              </div>
-            </div>
-
-            {/* Institution Field */}
-            <div>
-              <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-1">
-                Institution <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <input
-                  id="institution"
-                  name="institution"
-                  type="text"
-                  required
-                  value={formData.institution}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                  placeholder="Enter institution name"
                 />
               </div>
             </div>
@@ -293,7 +355,7 @@ export default function AdminSignup() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || loadingInstitutions}
               className="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {loading ? (
@@ -313,8 +375,8 @@ export default function AdminSignup() {
             <div className="text-center pt-4 border-t border-gray-100">
               <p className="text-gray-600">
                 Back to{" "}
-                <Link href="/login" className="font-medium text-black hover:text-gray-700 transition-colors">
-                  LogIn
+                <Link href="/superAdmin/dashboard" className="font-medium text-black hover:text-gray-700 transition-colors">
+                  Dashboard
                 </Link>
               </p>
             </div>

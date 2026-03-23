@@ -29,8 +29,7 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       password,
-      class: studentClass,
-      section,
+      sectionId,
       roll,
     } = await request.json();
 
@@ -40,14 +39,13 @@ export async function POST(request: NextRequest) {
       !email ||
       !phone ||
       !password ||
-      !studentClass ||
-      !section ||
+      !sectionId ||
       !roll
     ) {
       return NextResponse.json(
         {
           error:
-            "All fields are required: name, email, phone, password, class, section, and roll",
+            "All fields are required: name, email, phone, password, sectionId, and roll",
         },
         { status: 400 }
       );
@@ -72,27 +70,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify section exists and get institution from section
+    const section = await prisma.section.findUnique({
+      where: { id: sectionId },
+      include: {
+        class: {
+          include: {
+            institution: true,
+          },
+        },
+      },
+    });
+
+    if (!section) {
+      return NextResponse.json(
+        { error: "Section not found" },
+        { status: 404 }
+      );
+    }
+
     // Get the creator's institution (admin/teacher)
     const creator = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { institution: true },
+      select: { institutionId: true },
     });
+
+    // For non-SUPER_ADMIN, verify the section belongs to their institution
+    if (session.user.role !== "SUPER_ADMIN") {
+      if (creator?.institutionId !== section.class.institutionId) {
+        return NextResponse.json(
+          { error: "You can only add students to sections in your institution" },
+          { status: 403 }
+        );
+      }
+    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create student user with creator's institution
+    // Create student user with institution from section
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
-        institution: creator?.institution || null,
+        institutionId: section.class.institutionId,
         password: hashedPassword,
         role: "STUDENT",
-        class: studentClass,
-        section,
+        sectionId,
         roll,
+      },
+      include: {
+        institution: true,
+        section: {
+          include: {
+            class: true,
+          },
+        },
       },
     });
 
@@ -104,9 +138,11 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
-          institution: user.institution,
-          class: user.class,
-          section: user.section,
+          institutionId: user.institutionId,
+          institutionName: user.institution?.name,
+          sectionId: user.sectionId,
+          sectionName: user.section?.name,
+          className: user.section?.class.name,
           roll: user.roll,
         },
       },

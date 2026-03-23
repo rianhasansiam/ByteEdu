@@ -14,6 +14,22 @@ export default function Navbar() {
   // Check if user can access dashboard (not USER role)
   const canAccessDashboard = userRole && ["ADMIN", "SUPER_ADMIN", "TEACHER", "STUDENT"].includes(userRole);
 
+  // Get dashboard link based on role
+  const getDashboardLink = () => {
+    switch (userRole) {
+      case "SUPER_ADMIN":
+        return "/superAdmin/dashboard";
+      case "ADMIN":
+        return "/admin/dashboard";
+      case "TEACHER":
+        return "/teacher/dashboard";
+      case "STUDENT":
+        return "/student/dashboard";
+      default:
+        return "/dashboard";
+    }
+  };
+
   // Get signup options based on role
   const getSignupOptions = () => {
     if (!session) return [];
@@ -86,17 +102,9 @@ export default function Navbar() {
               <div className="w-20 h-10 bg-gray-200 animate-pulse rounded-lg"></div>
             ) : session ? (
               <>
-                {userRole === "SUPER_ADMIN" && (
+                {canAccessDashboard && (
                   <Link
-                    href="/superAdmin/dashboard"
-                    className="text-gray-600 hover:text-black transition-colors"
-                  >
-                    Admin Panel
-                  </Link>
-                )}
-                {canAccessDashboard && userRole !== "SUPER_ADMIN" && (
-                  <Link
-                    href="/dashboard"
+                    href={getDashboardLink()}
                     className="text-gray-600 hover:text-black transition-colors"
                   >
                     Dashboard
@@ -212,17 +220,9 @@ export default function Navbar() {
                 <div className="w-full h-10 bg-gray-200 animate-pulse rounded-lg"></div>
               ) : session ? (
                 <>
-                  {userRole === "SUPER_ADMIN" && (
+                  {canAccessDashboard && (
                     <Link
-                      href="/superAdmin/dashboard"
-                      className="text-gray-600 hover:text-black transition-colors py-2"
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-                  {canAccessDashboard && userRole !== "SUPER_ADMIN" && (
-                    <Link
-                      href="/dashboard"
+                      href={getDashboardLink()}
                       className="text-gray-600 hover:text-black transition-colors py-2"
                     >
                       Dashboard

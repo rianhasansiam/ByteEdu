@@ -20,24 +20,39 @@ enum Role {
   STUDENT
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
 model User {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  phone       String?
-  institution String?
-  password    String
-  role        Role     @default(USER)
-  picture     String?
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  password      String
+  role          Role     @default(USER)
+  picture       String?
   // Teacher specific fields
-  teacherId   String?
-  class       String?
-  section     String?
-  // Student specific field
-  roll        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  notices     Notice[]
+  teacherId     String?
+  // Student specific fields
+  roll          String?
+  sectionId     String?
+  section       Section? @relation("StudentSection", fields: [sectionId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  notices              Notice[]
+  teacherAssignments   TeacherAssignment[]  @relation("TeacherAssignments")
+  classTeacherOf       Section[]            @relation("ClassTeacher")
+  attendancesTaken     Attendance[]         @relation("AttendanceTakenBy")
+  studentAttendances   Attendance[]         @relation("StudentAttendance")
+  studentMarks         StudentMark[]        @relation("StudentMarks")
 }
 
 model Institution {
@@ -46,8 +61,13 @@ model Institution {
   status        String         @default("inactive")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  
+  // Relations
   subscriptions Subscription[]
   notices       Notice[]
+  users         User[]
+  classes       Class[]
+  subjects      Subject[]
 }
 
 model Plan {
@@ -93,6 +113,105 @@ model Notice {
   targetInstitution   Institution? @relation(fields: [targetInstitutionId], references: [id], onDelete: SetNull)
   isPublished Boolean   @default(false)
   publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============================================
+// NEW MODELS FOR TEACHER PANEL
+// ============================================
+
+model Class {
+  id            String    @id @default(cuid())
+  name          String                          // e.g., "Class 1", "Class 10"
+  displayOrder  Int       @default(0)           // For sorting
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  sections      Section[]
+  
+  @@unique([name, institutionId])
+}
+
+model Section {
+  id            String    @id @default(cuid())
+  name          String                          // e.g., "A", "B", "C"
+  classId       String
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classTeacherId String?
+  classTeacher  User?     @relation("ClassTeacher", fields: [classTeacherId], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  students           User[]              @relation("StudentSection")
+  teacherAssignments TeacherAssignment[]
+  attendances        Attendance[]
+  
+  @@unique([name, classId])
+}
+
+model Subject {
+  id            String    @id @default(cuid())
+  name          String                          // e.g., "Mathematics", "English"
+  code          String?                         // e.g., "MATH101"
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  teacherAssignments TeacherAssignment[]
+  studentMarks       StudentMark[]
+  
+  @@unique([name, institutionId])
+}
+
+model TeacherAssignment {
+  id          String    @id @default(cuid())
+  teacherId   String
+  teacher     User      @relation("TeacherAssignments", fields: [teacherId], references: [id], onDelete: Cascade)
+  sectionId   String
+  section     Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([teacherId, sectionId, subjectId])
+}
+
+model Attendance {
+  id          String           @id @default(cuid())
+  studentId   String
+  student     User             @relation("StudentAttendance", fields: [studentId], references: [id], onDelete: Cascade)
+  sectionId   String
+  section     Section          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  teacherId   String
+  teacher     User             @relation("AttendanceTakenBy", fields: [teacherId], references: [id], onDelete: Cascade)
+  date        DateTime         @db.Date
+  status      AttendanceStatus @default(PRESENT)
+  remarks     String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  @@unique([studentId, date, sectionId])
+}
+
+model StudentMark {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     User      @relation("StudentMarks", fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  marks       Float?
+  maxMarks    Float     @default(100)
+  examType    String    @default("exam")  // exam, quiz, assignment
+  notes       String?
+  date        DateTime  @default(now())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

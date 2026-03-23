@@ -12,6 +12,7 @@ export type InstitutionUser = {
 }
 
 export type InstitutionData = {
+  id: string;
   name: string;
   totalUsers: number;
   admins: number;

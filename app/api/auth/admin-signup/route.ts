@@ -16,12 +16,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, phone, institution, password } = await request.json();
+    const { name, email, phone, institutionId, password } = await request.json();
 
     // Validation
-    if (!name || !email || !phone || !institution || !password) {
+    if (!name || !email || !phone || !institutionId || !password) {
       return NextResponse.json(
-        { error: "All fields are required: name, email, phone, institution, and password" },
+        { error: "All fields are required: name, email, phone, institutionId, and password" },
         { status: 400 }
       );
     }
@@ -45,6 +45,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify institution exists
+    const institutionExists = await prisma.institution.findUnique({
+      where: { id: institutionId },
+    });
+
+    if (!institutionExists) {
+      return NextResponse.json(
+        { error: "Institution not found" },
+        { status: 404 }
+      );
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -54,9 +66,12 @@ export async function POST(request: NextRequest) {
         name,
         email,
         phone,
-        institution,
+        institutionId,
         password: hashedPassword,
         role: "ADMIN",
+      },
+      include: {
+        institution: true,
       },
     });
 
@@ -68,7 +83,8 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           phone: user.phone,
-          institution: user.institution,
+          institutionId: user.institutionId,
+          institutionName: user.institution?.name,
           role: user.role,
         },
       },

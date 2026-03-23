@@ -11,84 +11,55 @@ import { CACHE_TAGS } from "@/lib/cache-tags";
 // Get all institutions with their users and computed stats
 export const getInstitutionsWithUsers = unstable_cache(
   async () => {
-    // Fetch users and institution records in parallel
-    const [users, institutionRecords] = await Promise.all([
-      prisma.user.findMany({
-        where: { institution: { not: null } },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          institution: true,
-          role: true,
-          picture: true,
-          createdAt: true,
+    // Fetch institutions with their users
+    const institutions = await prisma.institution.findMany({
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            picture: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
         },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.institution.findMany(),
-    ]);
-
-    // Build a status lookup from Institution table
-    const statusMap = new Map<string, string>();
-    for (const rec of institutionRecords) {
-      statusMap.set(rec.name, rec.status);
-    }
-
-    // Group users by institution
-    const institutionMap = new Map<string, typeof users>();
-    for (const user of users) {
-      const inst = user.institution!;
-      if (!institutionMap.has(inst)) {
-        institutionMap.set(inst, []);
-      }
-      institutionMap.get(inst)!.push(user);
-    }
+      },
+    });
 
     // Build institution data with stats
-    const result = Array.from(institutionMap.entries()).map(
-      ([name, instUsers]) => {
-        const admins = instUsers.filter((u) => u.role === "ADMIN").length;
-        const teachers = instUsers.filter((u) => u.role === "TEACHER").length;
-        const students = instUsers.filter((u) => u.role === "STUDENT").length;
-        const others = instUsers.length - admins - teachers - students;
+    const result = institutions.map((inst) => {
+      const instUsers = inst.users;
+      const admins = instUsers.filter((u) => u.role === "ADMIN").length;
+      const teachers = instUsers.filter((u) => u.role === "TEACHER").length;
+      const students = instUsers.filter((u) => u.role === "STUDENT").length;
+      const others = instUsers.length - admins - teachers - students;
 
-        const latestJoin = instUsers.reduce(
-          (latest, u) => (u.createdAt > latest ? u.createdAt : latest),
-          instUsers[0].createdAt
-        );
+      const latestJoin = instUsers.length > 0
+        ? instUsers.reduce(
+            (latest, u) => (u.createdAt > latest ? u.createdAt : latest),
+            instUsers[0].createdAt
+          )
+        : inst.createdAt;
 
-        // Use stored status, or default to "active"
-        const status = (statusMap.get(name) || "active") as
-          | "active"
-          | "inactive";
-
-        return {
-          name,
-          totalUsers: instUsers.length,
-          admins,
-          teachers,
-          students,
-          others,
-          status,
-          latestJoin,
-          users: instUsers,
-        };
-      }
-    );
-
-    // Auto-create Institution records for any that don't exist yet
-    const missingNames = result
-      .filter((r) => !statusMap.has(r.name))
-      .map((r) => r.name);
-
-    if (missingNames.length > 0) {
-      await prisma.institution.createMany({
-        data: missingNames.map((name) => ({ name, status: "active" })),
-        skipDuplicates: true,
-      });
-    }
+      return {
+        id: inst.id,
+        name: inst.name,
+        totalUsers: instUsers.length,
+        admins,
+        teachers,
+        students,
+        others,
+        status: inst.status as "active" | "inactive",
+        latestJoin,
+        users: instUsers.map((u) => ({
+          ...u,
+          institution: inst.name,
+        })),
+      };
+    });
 
     return result;
   },
@@ -99,45 +70,109 @@ export const getInstitutionsWithUsers = unstable_cache(
 // Get overall institution statistics
 export const getInstitutionStats = unstable_cache(
   async () => {
-    const [institutionRecords, users] = await Promise.all([
-      prisma.institution.findMany({ select: { name: true, status: true } }),
-      prisma.user.findMany({
-        where: { institution: { not: null } },
-        select: { institution: true },
-      }),
-    ]);
-
-    const statusMap = new Map<string, string>();
-    for (const rec of institutionRecords) {
-      statusMap.set(rec.name, rec.status);
-    }
-
-    const institutionNames = new Set(users.map((u) => u.institution!));
+    const institutions = await prisma.institution.findMany({
+      select: { 
+        id: true,
+        name: true, 
+        status: true,
+        _count: {
+          select: { users: true },
+        },
+      },
+    });
 
     let active = 0;
     let inactive = 0;
-    for (const name of institutionNames) {
-      const status = statusMap.get(name) || "active";
-      if (status === "active") active++;
+    let totalUsers = 0;
+
+    for (const inst of institutions) {
+      if (inst.status === "active") active++;
       else inactive++;
+      totalUsers += inst._count.users;
     }
 
     return {
-      total: institutionNames.size,
+      total: institutions.length,
       active,
       inactive,
-      totalUsers: users.length,
+      totalUsers,
     };
   },
   ["institution-stats"],
   { tags: [CACHE_TAGS.institutions, CACHE_TAGS.users] }
 );
 
+// Get institution by ID
+export const getInstitutionById = unstable_cache(
+  async (id: string) => {
+    return prisma.institution.findUnique({
+      where: { id },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+  },
+  ["institution-by-id"],
+  { tags: [CACHE_TAGS.institutions] }
+);
+
+// Get all institutions (simple list)
+export const getAllInstitutions = unstable_cache(
+  async () => {
+    return prisma.institution.findMany({
+      select: {
+        id: true,
+        name: true,
+        status: true,
+      },
+      orderBy: { name: "asc" },
+    });
+  },
+  ["all-institutions"],
+  { tags: [CACHE_TAGS.institutions] }
+);
+
 // ============================================
 // MUTATIONS (WRITE) - with updateTag
 // ============================================
 
+export async function createInstitution(data: {
+  name: string;
+  status?: "active" | "inactive";
+}) {
+  const institution = await prisma.institution.create({
+    data: {
+      name: data.name,
+      status: data.status || "active",
+    },
+  });
+
+  updateTag(CACHE_TAGS.institutions);
+  return institution;
+}
+
 export async function updateInstitutionStatus(
+  id: string,
+  status: "active" | "inactive"
+) {
+  await prisma.institution.update({
+    where: { id },
+    data: { status },
+  });
+
+  updateTag(CACHE_TAGS.institutions);
+  updateTag(CACHE_TAGS.users);
+}
+
+// Legacy function - update by name (for backward compatibility)
+export async function updateInstitutionStatusByName(
   name: string,
   status: "active" | "inactive"
 ) {

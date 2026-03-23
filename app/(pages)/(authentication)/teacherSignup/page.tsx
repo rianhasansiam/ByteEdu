@@ -1,26 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+
+type Institution = {
+  id: string;
+  name: string;
+  status: string;
+};
 
 export default function TeacherSignup() {
+  const { data: session, status: sessionStatus } = useSession();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     teacherId: "",
-    class: "",
-    section: "",
+    institutionId: "",
     password: "",
     confirmPassword: "",
   });
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch institutions only for SUPER_ADMIN
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      setLoadingInstitutions(true);
+      try {
+        const response = await fetch("/api/institutions");
+        const data = await response.json();
+        if (data.institutions) {
+          setInstitutions(data.institutions);
+        }
+      } catch (err) {
+        console.error("Failed to fetch institutions:", err);
+        setError("Failed to load institutions");
+      } finally {
+        setLoadingInstitutions(false);
+      }
+    };
+
+    // Only Super Admin needs institution dropdown
+    if (session?.user.role === "SUPER_ADMIN") {
+      fetchInstitutions();
+    }
+  }, [session]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -38,23 +72,34 @@ export default function TeacherSignup() {
       return;
     }
 
+    // For Super Admin, institution is required
+    if (session?.user.role === "SUPER_ADMIN" && !formData.institutionId) {
+      setError("Please select an institution");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const payload: Record<string, string> = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        teacherId: formData.teacherId,
+        password: formData.password,
+      };
+
+      // Only include institutionId for Super Admin
+      if (session?.user.role === "SUPER_ADMIN" && formData.institutionId) {
+        payload.institutionId = formData.institutionId;
+      }
+
       const response = await fetch("/api/auth/teacher-signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          teacherId: formData.teacherId,
-          class: formData.class,
-          section: formData.section,
-          password: formData.password,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -69,8 +114,7 @@ export default function TeacherSignup() {
         email: "",
         phone: "",
         teacherId: "",
-        class: "",
-        section: "",
+        institutionId: "",
         password: "",
         confirmPassword: "",
       });
@@ -80,6 +124,27 @@ export default function TeacherSignup() {
       setLoading(false);
     }
   };
+
+  // Determine back link based on user role
+  const getBackLink = () => {
+    if (session?.user.role === "SUPER_ADMIN") {
+      return "/superAdmin/dashboard";
+    } else if (session?.user.role === "ADMIN") {
+      return "/admin/dashboard";
+    }
+    return "/login";
+  };
+
+  // Show loading while checking session
+  if (sessionStatus === "loading" || !session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  const isSuperAdmin = session.user.role === "SUPER_ADMIN";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -115,6 +180,47 @@ export default function TeacherSignup() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 {success}
+              </div>
+            )}
+
+            {/* Institution Field - Only for Super Admin */}
+            {isSuperAdmin && (
+              <div>
+                <label htmlFor="institutionId" className="block text-sm font-medium text-gray-700 mb-1">
+                  Institution <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <select
+                    id="institutionId"
+                    name="institutionId"
+                    required
+                    value={formData.institutionId}
+                    onChange={handleChange}
+                    disabled={loadingInstitutions}
+                    className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none"
+                  >
+                    <option value="">
+                      {loadingInstitutions ? "Loading institutions..." : "Select an institution"}
+                    </option>
+                    {institutions
+                      .filter((inst) => inst.status === "active")
+                      .map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.name}
+                        </option>
+                      ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -214,57 +320,6 @@ export default function TeacherSignup() {
               </div>
             </div>
 
-            {/* Class and Section Row */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Class Field */}
-              <div>
-                <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-1">
-                  Class <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <input
-                    id="class"
-                    name="class"
-                    type="text"
-                    required
-                    value={formData.class}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                    placeholder="e.g., 10"
-                  />
-                </div>
-              </div>
-
-              {/* Section Field */}
-              <div>
-                <label htmlFor="section" className="block text-sm font-medium text-gray-700 mb-1">
-                  Section <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <input
-                    id="section"
-                    name="section"
-                    type="text"
-                    required
-                    value={formData.section}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                    placeholder="e.g., A"
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
@@ -350,7 +405,7 @@ export default function TeacherSignup() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isSuperAdmin && loadingInstitutions)}
               className="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {loading ? (
@@ -370,7 +425,7 @@ export default function TeacherSignup() {
             <div className="text-center pt-4 border-t border-gray-100">
               <p className="text-gray-600">
                 Back to{" "}
-                <Link href="/login" className="font-medium text-black hover:text-gray-700 transition-colors">
+                <Link href={getBackLink()} className="font-medium text-black hover:text-gray-700 transition-colors">
                   Dashboard
                 </Link>
               </p>

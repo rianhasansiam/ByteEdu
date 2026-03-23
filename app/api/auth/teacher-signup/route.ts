@@ -16,12 +16,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, phone, password, class: teacherClass, section, teacherId } = await request.json();
+    const { name, email, phone, password, teacherId, sectionId, subjectId, institutionId: requestInstitutionId } = await request.json();
 
     // Validation
-    if (!name || !email || !phone || !password || !teacherClass || !section || !teacherId) {
+    if (!name || !email || !phone || !password || !teacherId) {
       return NextResponse.json(
-        { error: "All fields are required: name, email, phone, password, class, section, and teacherId" },
+        { error: "All fields are required: name, email, phone, password, and teacherId" },
         { status: 400 }
       );
     }
@@ -45,29 +45,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the admin's institution
-    const admin = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { institution: true },
-    });
+    // Determine the institutionId based on role
+    let finalInstitutionId: string | null = null;
+
+    if (session.user.role === "SUPER_ADMIN") {
+      // Super Admin can specify institutionId or leave it null
+      if (requestInstitutionId) {
+        // Verify institution exists
+        const institution = await prisma.institution.findUnique({
+          where: { id: requestInstitutionId },
+        });
+        if (!institution) {
+          return NextResponse.json(
+            { error: "Institution not found" },
+            { status: 404 }
+          );
+        }
+        finalInstitutionId = requestInstitutionId;
+      }
+    } else {
+      // Admin must have an institution and can only create teachers in their institution
+      const admin = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { institutionId: true },
+      });
+
+      if (!admin?.institutionId) {
+        return NextResponse.json(
+          { error: "Admin must belong to an institution to create teachers" },
+          { status: 400 }
+        );
+      }
+      finalInstitutionId = admin.institutionId;
+    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create teacher user with admin's institution
+    // Create teacher user
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
-        institution: admin?.institution || null,
+        institutionId: finalInstitutionId,
         password: hashedPassword,
         role: "TEACHER",
         teacherId,
-        class: teacherClass,
-        section,
+      },
+      include: {
+        institution: true,
       },
     });
+
+    // If sectionId and subjectId are provided, create a teacher assignment
+    if (sectionId && subjectId) {
+      await prisma.teacherAssignment.create({
+        data: {
+          teacherId: user.id,
+          sectionId,
+          subjectId,
+        },
+      });
+    }
 
     return NextResponse.json(
       {
@@ -77,10 +117,9 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           phone: user.phone,
-          institution: user.institution,
+          institutionId: user.institutionId,
+          institutionName: user.institution?.name,
           teacherId: user.teacherId,
-          class: user.class,
-          section: user.section,
           role: user.role,
         },
       },

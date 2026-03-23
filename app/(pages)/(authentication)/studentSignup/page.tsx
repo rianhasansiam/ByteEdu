@@ -1,29 +1,133 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+
+type Institution = {
+  id: string;
+  name: string;
+  status: string;
+};
+
+type Section = {
+  id: string;
+  name: string;
+};
+
+type Class = {
+  id: string;
+  name: string;
+  institutionId: string;
+  sections: Section[];
+};
 
 export default function StudentSignup() {
+  const { data: session, status: sessionStatus } = useSession();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    class: "",
-    section: "",
+    institutionId: "",
+    classId: "",
+    sectionId: "",
     roll: "",
     password: "",
     confirmPassword: "",
   });
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(false);
+  const [loadingClasses, setLoadingClasses] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+
+  // Fetch institutions only for SUPER_ADMIN
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      setLoadingInstitutions(true);
+      try {
+        const response = await fetch("/api/institutions");
+        const data = await response.json();
+        if (data.institutions) {
+          setInstitutions(data.institutions);
+        }
+      } catch (err) {
+        console.error("Failed to fetch institutions:", err);
+        setError("Failed to load institutions");
+      } finally {
+        setLoadingInstitutions(false);
+      }
+    };
+
+    if (session?.user.role === "SUPER_ADMIN") {
+      fetchInstitutions();
+    }
+  }, [session]);
+
+  // Fetch classes when institution is selected (for Super Admin) or on load (for Admin/Teacher)
+  useEffect(() => {
+    const fetchClasses = async () => {
+      setLoadingClasses(true);
+      try {
+        let url = "/api/classes";
+        if (isSuperAdmin && formData.institutionId) {
+          url += `?institutionId=${formData.institutionId}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.classes) {
+          setClasses(data.classes);
+        }
+      } catch (err) {
+        console.error("Failed to fetch classes:", err);
+        setError("Failed to load classes");
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+
+    // For Super Admin, only fetch when institution is selected
+    // For Admin/Teacher, fetch immediately
+    if (session) {
+      if (isSuperAdmin) {
+        if (formData.institutionId) {
+          fetchClasses();
+        } else {
+          setClasses([]);
+        }
+      } else {
+        fetchClasses();
+      }
+    }
+  }, [session, isSuperAdmin, formData.institutionId]);
+
+  // Get sections for selected class
+  const selectedClass = classes.find((c) => c.id === formData.classId);
+  const sections = selectedClass?.sections || [];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value };
+      
+      // Reset dependent fields
+      if (name === "institutionId") {
+        newData.classId = "";
+        newData.sectionId = "";
+      } else if (name === "classId") {
+        newData.sectionId = "";
+      }
+      
+      return newData;
     });
   };
 
@@ -35,6 +139,11 @@ export default function StudentSignup() {
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      return;
+    }
+
+    if (!formData.sectionId) {
+      setError("Please select a section");
       return;
     }
 
@@ -50,8 +159,7 @@ export default function StudentSignup() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          class: formData.class,
-          section: formData.section,
+          sectionId: formData.sectionId,
           roll: formData.roll,
           password: formData.password,
         }),
@@ -68,8 +176,9 @@ export default function StudentSignup() {
         name: "",
         email: "",
         phone: "",
-        class: "",
-        section: "",
+        institutionId: "",
+        classId: "",
+        sectionId: "",
         roll: "",
         password: "",
         confirmPassword: "",
@@ -80,6 +189,27 @@ export default function StudentSignup() {
       setLoading(false);
     }
   };
+
+  // Determine back link based on user role
+  const getBackLink = () => {
+    if (session?.user.role === "SUPER_ADMIN") {
+      return "/superAdmin/dashboard";
+    } else if (session?.user.role === "ADMIN") {
+      return "/admin/dashboard";
+    } else if (session?.user.role === "TEACHER") {
+      return "/teacher/dashboard";
+    }
+    return "/login";
+  };
+
+  // Show loading while checking session
+  if (sessionStatus === "loading" || !session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -117,6 +247,124 @@ export default function StudentSignup() {
                 {success}
               </div>
             )}
+
+            {/* Institution Field - Only for Super Admin */}
+            {isSuperAdmin && (
+              <div>
+                <label htmlFor="institutionId" className="block text-sm font-medium text-gray-700 mb-1">
+                  Institution <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <select
+                    id="institutionId"
+                    name="institutionId"
+                    required
+                    value={formData.institutionId}
+                    onChange={handleChange}
+                    disabled={loadingInstitutions}
+                    className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none"
+                  >
+                    <option value="">
+                      {loadingInstitutions ? "Loading institutions..." : "Select an institution"}
+                    </option>
+                    {institutions
+                      .filter((inst) => inst.status === "active")
+                      .map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.name}
+                        </option>
+                      ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Class and Section Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Class Field */}
+              <div>
+                <label htmlFor="classId" className="block text-sm font-medium text-gray-700 mb-1">
+                  Class <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <select
+                    id="classId"
+                    name="classId"
+                    required
+                    value={formData.classId}
+                    onChange={handleChange}
+                    disabled={loadingClasses || (isSuperAdmin && !formData.institutionId)}
+                    className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none disabled:opacity-50"
+                  >
+                    <option value="">
+                      {loadingClasses ? "Loading..." : "Select class"}
+                    </option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Field */}
+              <div>
+                <label htmlFor="sectionId" className="block text-sm font-medium text-gray-700 mb-1">
+                  Section <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <select
+                    id="sectionId"
+                    name="sectionId"
+                    required
+                    value={formData.sectionId}
+                    onChange={handleChange}
+                    disabled={!formData.classId}
+                    className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none disabled:opacity-50"
+                  >
+                    <option value="">
+                      {!formData.classId ? "Select class first" : "Select section"}
+                    </option>
+                    {sections.map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Name Field */}
             <div>
@@ -166,76 +414,28 @@ export default function StudentSignup() {
               </div>
             </div>
 
-            {/* Phone Field */}
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                  placeholder="Enter phone number"
-                />
-              </div>
-            </div>
-
-            {/* Class, Section, and Roll Row */}
-            <div className="grid grid-cols-3 gap-3">
-              {/* Class Field */}
+            {/* Phone and Roll Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Phone Field */}
               <div>
-                <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-1">
-                  Class <span className="text-red-500">*</span>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                   </div>
                   <input
-                    id="class"
-                    name="class"
-                    type="text"
+                    id="phone"
+                    name="phone"
+                    type="tel"
                     required
-                    value={formData.class}
+                    value={formData.phone}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                    placeholder="10"
-                  />
-                </div>
-              </div>
-
-              {/* Section Field */}
-              <div>
-                <label htmlFor="section" className="block text-sm font-medium text-gray-700 mb-1">
-                  Section <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <input
-                    id="section"
-                    name="section"
-                    type="text"
-                    required
-                    value={formData.section}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                    placeholder="A"
+                    placeholder="Phone number"
                   />
                 </div>
               </div>
@@ -243,7 +443,7 @@ export default function StudentSignup() {
               {/* Roll Field */}
               <div>
                 <label htmlFor="roll" className="block text-sm font-medium text-gray-700 mb-1">
-                  Roll <span className="text-red-500">*</span>
+                  Roll No. <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -259,7 +459,7 @@ export default function StudentSignup() {
                     value={formData.roll}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                    placeholder="01"
+                    placeholder="e.g., 01"
                   />
                 </div>
               </div>
@@ -350,7 +550,7 @@ export default function StudentSignup() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isSuperAdmin && loadingInstitutions) || loadingClasses}
               className="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {loading ? (
@@ -370,7 +570,7 @@ export default function StudentSignup() {
             <div className="text-center pt-4 border-t border-gray-100">
               <p className="text-gray-600">
                 Back to{" "}
-                <Link href="/login" className="font-medium text-black hover:text-gray-700 transition-colors">
+                <Link href={getBackLink()} className="font-medium text-black hover:text-gray-700 transition-colors">
                   Dashboard
                 </Link>
               </p>

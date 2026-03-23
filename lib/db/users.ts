@@ -17,12 +17,22 @@ export const getAllUsers = unstable_cache(
         name: true,
         email: true,
         phone: true,
-        institution: true,
+        institutionId: true,
+        institution: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         role: true,
         picture: true,
         teacherId: true,
-        class: true,
-        section: true,
+        sectionId: true,
+        section: {
+          include: {
+            class: true,
+          },
+        },
         roll: true,
         createdAt: true,
       },
@@ -42,12 +52,22 @@ export const getUserById = unstable_cache(
         name: true,
         email: true,
         phone: true,
-        institution: true,
+        institutionId: true,
+        institution: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         role: true,
         picture: true,
         teacherId: true,
-        class: true,
-        section: true,
+        sectionId: true,
+        section: {
+          include: {
+            class: true,
+          },
+        },
         roll: true,
         createdAt: true,
         updatedAt: true,
@@ -70,17 +90,16 @@ export const getUserByEmail = unstable_cache(
 
 export const getUniqueInstitutions = unstable_cache(
   async () => {
-    const users = await prisma.user.findMany({
-      where: {
-        institution: { not: null },
+    const institutions = await prisma.institution.findMany({
+      select: { 
+        id: true,
+        name: true 
       },
-      select: { institution: true },
-      distinct: ["institution"],
     });
-    return users.map((u) => u.institution).filter(Boolean) as string[];
+    return institutions;
   },
   ["unique-institutions"],
-  { tags: [CACHE_TAGS.userInstitutions, CACHE_TAGS.users] }
+  { tags: [CACHE_TAGS.userInstitutions, CACHE_TAGS.institutions] }
 );
 
 export const getUserStats = unstable_cache(
@@ -109,12 +128,11 @@ export async function createUser(data: {
   email: string;
   password: string;
   phone?: string;
-  institution?: string;
+  institutionId?: string;
   role?: Role;
   picture?: string;
   teacherId?: string;
-  class?: string;
-  section?: string;
+  sectionId?: string;
   roll?: string;
 }) {
   const user = await prisma.user.create({
@@ -123,12 +141,11 @@ export async function createUser(data: {
       email: data.email,
       password: data.password,
       phone: data.phone,
-      institution: data.institution,
+      institutionId: data.institutionId,
       role: data.role || "USER",
       picture: data.picture,
       teacherId: data.teacherId,
-      class: data.class,
-      section: data.section,
+      sectionId: data.sectionId,
       roll: data.roll,
     },
   });
@@ -147,10 +164,12 @@ export async function updateUser(
     name?: string;
     email?: string;
     phone?: string;
-    institution?: string;
+    institutionId?: string;
     password?: string;
     role?: Role;
     picture?: string;
+    sectionId?: string;
+    roll?: string;
   }
 ) {
   const user = await prisma.user.update({

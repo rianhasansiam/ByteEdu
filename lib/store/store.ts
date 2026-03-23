@@ -4,6 +4,7 @@ import subscriptionsReducer from "./slices/subscriptionsSlice";
 import institutionsReducer from "./slices/institutionsSlice";
 import usersReducer from "./slices/usersSlice";
 import noticesReducer from "./slices/noticesSlice";
+import teacherReducer from "./slices/teacherSlice";
 
 export const makeStore = () =>
   configureStore({
@@ -13,6 +14,7 @@ export const makeStore = () =>
       institutions: institutionsReducer,
       users: usersReducer,
       notices: noticesReducer,
+      teacher: teacherReducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({ serializableCheck: false }),
