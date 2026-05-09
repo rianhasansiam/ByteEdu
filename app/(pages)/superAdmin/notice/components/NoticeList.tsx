@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/store/hooks";
-import { deleteNotice, toggleNoticePublish } from "@/lib/db/notices";
 import {
   getPriorityBadgeColor,
   getTargetLabel,
@@ -16,6 +16,7 @@ type Props = {
 
 export default function NoticeList({ hasActiveFilters }: Props) {
   const notices = useAppSelector((s) => s.notices.notices);
+  const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -23,11 +24,20 @@ export default function NoticeList({ hasActiveFilters }: Props) {
     if (!confirm("Are you sure you want to delete this notice?")) return;
     setDeletingId(id);
     try {
-      await deleteNotice(id);
+      const response = await fetch(`/api/superadmin/notices/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete notice');
+      }
+      
       toast.success("Notice deleted successfully");
+      router.refresh();
     } catch (error) {
       console.error("Failed to delete notice:", error);
-      toast.error("Failed to delete notice");
+      toast.error(error instanceof Error ? error.message : "Failed to delete notice");
     } finally {
       setDeletingId(null);
     }
@@ -36,13 +46,26 @@ export default function NoticeList({ hasActiveFilters }: Props) {
   const handleTogglePublish = async (id: string, currentlyPublished: boolean) => {
     setTogglingId(id);
     try {
-      await toggleNoticePublish(id);
+      const response = await fetch(`/api/superadmin/notices/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ togglePublish: true }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update notice');
+      }
+      
       toast.success(
         currentlyPublished ? "Notice unpublished" : "Notice published successfully"
       );
+      router.refresh();
     } catch (error) {
       console.error("Failed to toggle publish:", error);
-      toast.error("Failed to update notice status");
+      toast.error(error instanceof Error ? error.message : "Failed to update notice status");
     } finally {
       setTogglingId(null);
     }

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/store/hooks";
-import { updateInstitutionStatus } from "@/lib/db/institutions";
 import { getRoleBadgeColor } from "./types";
 
 type Props = {
@@ -13,6 +13,7 @@ type Props = {
 
 export default function InstitutionCards({ hasActiveFilters }: Props) {
   const institutions = useAppSelector((s) => s.institutions.institutions);
+  const router = useRouter();
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [togglingStatus, setTogglingStatus] = useState<string | null>(null);
 
@@ -30,18 +31,31 @@ export default function InstitutionCards({ hasActiveFilters }: Props) {
 
   const handleStatusToggle = async (
     e: React.MouseEvent,
-    name: string,
+    institutionId: string,
     currentStatus: "active" | "inactive"
   ) => {
     e.stopPropagation();
-    setTogglingStatus(name);
+    setTogglingStatus(institutionId);
     try {
       const newStatus = currentStatus === "active" ? "inactive" : "active";
-      await updateInstitutionStatus(name, newStatus);
+      const response = await fetch(`/api/superadmin/institutions/${institutionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update status');
+      }
+      
       toast.success(`Institution ${newStatus === "active" ? "activated" : "deactivated"} successfully`);
+      router.refresh(); // Refresh the page to update the institution list
     } catch (error) {
       console.error("Failed to update status:", error);
-      toast.error("Failed to update institution status");
+      toast.error(error instanceof Error ? error.message : "Failed to update institution status");
     } finally {
       setTogglingStatus(null);
     }
@@ -76,12 +90,12 @@ export default function InstitutionCards({ hasActiveFilters }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {institutions.map((inst) => {
-        const isExpanded = expandedCards.has(inst.name);
-        const isToggling = togglingStatus === inst.name;
+        const isExpanded = expandedCards.has(inst.id);
+        const isToggling = togglingStatus === inst.id;
 
         return (
           <div
-            key={inst.name}
+            key={inst.id}
             className={`bg-white rounded-xl shadow-sm border transition-all ${
               inst.status === "active"
                 ? "border-gray-100"
@@ -130,7 +144,7 @@ export default function InstitutionCards({ hasActiveFilters }: Props) {
 
                 {/* Status Toggle */}
                 <button
-                  onClick={(e) => handleStatusToggle(e, inst.name, inst.status)}
+                  onClick={(e) => handleStatusToggle(e, inst.id, inst.status)}
                   disabled={isToggling}
                   className="flex items-center gap-2 shrink-0"
                   title={`Click to ${
@@ -204,7 +218,7 @@ export default function InstitutionCards({ hasActiveFilters }: Props) {
 
               {/* View Users Button */}
               <button
-                onClick={() => toggleCard(inst.name)}
+                onClick={() => toggleCard(inst.id)}
                 className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isExpanded
                     ? "bg-gray-900 text-white"

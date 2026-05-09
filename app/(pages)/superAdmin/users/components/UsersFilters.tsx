@@ -87,8 +87,8 @@ export default function UsersFiltersClient({ filters, hasActiveFilters }: Props)
               <option value="ALL">All Institutions</option>
               <option value="NONE">No Institution</option>
               {institutions.map((inst) => (
-                <option key={inst} value={inst}>
-                  {inst}
+                <option key={inst.id} value={inst.name}>
+                  {inst.name}
                 </option>
               ))}
             </select>

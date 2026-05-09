@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setPlans } from "@/lib/store/slices/plansSlice";
 import {
@@ -34,12 +35,16 @@ const actions = {
 
 type HydrateKey = keyof typeof actions;
 
-// Dispatches during render to ensure store is populated before
-// consumer components render (required for SSR compatibility).
+// Dispatches after render to ensure store is populated before
+// consumer components update (required for SSR compatibility).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function Hydrate({ name, data }: { name: HydrateKey; data: any }) {
   const dispatch = useAppDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dispatch((actions[name] as any)(data));
+  
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dispatch((actions[name] as any)(data));
+  }, [dispatch, name, data]);
+  
   return null;
 }

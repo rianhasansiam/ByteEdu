@@ -20,13 +20,23 @@ type PageProps = {
 export default async function UsersPage({ searchParams }: PageProps) {
   const params = await searchParams;
   
-  const [allUsers, institutions, stats] = await Promise.all([
+  const [allUsersRaw, institutions, stats] = await Promise.all([
     getAllUsers(),
     getUniqueInstitutions(),
     getUserStats(),
   ]);
 
-
+  // Transform users data to flatten institution object to string
+  const allUsers: User[] = allUsersRaw.map((user: any) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    institution: user.institution?.name || null,
+    role: user.role,
+    picture: user.picture,
+    createdAt: user.createdAt,
+  }));
 
   // Build filters from search params
   const filters: FilterState = {
@@ -40,7 +50,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
 
 
   // Filter users on server
-  const filteredUsers = (allUsers as User[]).filter((user) => {
+  const filteredUsers = allUsers.filter((user) => {
     const matchesSearch =
       filters.searchTerm === "" ||
       user.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||

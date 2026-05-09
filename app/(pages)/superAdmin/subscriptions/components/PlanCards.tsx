@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/store/hooks";
-import { createPlan, deletePlan, togglePlanStatus } from "@/lib/db/plans";
 import { formatCurrency } from "./types";
 
 export default function PlanCards() {
   const plans = useAppSelector((s) => s.plans.plans);
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -26,21 +27,34 @@ export default function PlanCards() {
 
     setIsSubmitting(true);
     try {
-      await createPlan({
-        name: form.name,
-        price: parseFloat(form.price),
-        billingCycle: form.billingCycle,
-        features: form.features
-          .split("\n")
-          .map((f) => f.trim())
-          .filter(Boolean),
+      const response = await fetch('/api/superadmin/plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          price: parseFloat(form.price),
+          billingCycle: form.billingCycle,
+          features: form.features
+            .split("\n")
+            .map((f) => f.trim())
+            .filter(Boolean),
+        }),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create plan');
+      }
+      
       setShowModal(false);
       setForm({ name: "", price: "", billingCycle: "monthly", features: "" });
       toast.success("Plan created successfully");
+      router.refresh();
     } catch (error) {
       console.error("Failed to create plan:", error);
-      toast.error("Failed to create plan. Name may already exist.");
+      toast.error(error instanceof Error ? error.message : "Failed to create plan. Name may already exist.");
     } finally {
       setIsSubmitting(false);
     }
@@ -50,8 +64,17 @@ export default function PlanCards() {
     if (!confirm("Delete this plan? Plans with subscriptions cannot be deleted.")) return;
     setDeletingId(id);
     try {
-      await deletePlan(id);
+      const response = await fetch(`/api/superadmin/plans/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete plan');
+      }
+      
       toast.success("Plan deleted successfully");
+      router.refresh();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to delete plan";
       toast.error(message);
@@ -64,10 +87,24 @@ export default function PlanCards() {
     setTogglingId(id);
     try {
       const plan = plans.find((p) => p.id === id);
-      await togglePlanStatus(id);
+      const response = await fetch(`/api/superadmin/plans/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ toggleStatus: true }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to toggle plan status');
+      }
+      
       toast.success(`Plan ${plan?.isActive ? "deactivated" : "activated"} successfully`);
-    } catch {
-      toast.error("Failed to toggle plan status");
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to toggle plan status:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to toggle plan status");
     } finally {
       setTogglingId(null);
     }

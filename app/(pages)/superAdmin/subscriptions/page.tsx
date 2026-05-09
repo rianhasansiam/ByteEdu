@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { getAllPlans } from "@/lib/db/plans";
+import { getPlans } from "@/lib/services/superadmin";
 import {
-  getAllSubscriptions,
+  getSubscriptions,
   getSubscriptionStats,
-  getSubscribedInstitutions,
-} from "@/lib/db/subscriptions";
+  getAvailableInstitutions,
+} from "@/lib/services/superadmin";
 import Hydrate from "@/lib/store/hydrator";
 import TabSwitcher from "./components/TabSwitcher";
 import PlanCards from "./components/PlanCards";
@@ -38,7 +38,7 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
 
 // ─── Plans Tab ─────────────────────────────────────────
 async function PlansTab() {
-  const plans = await getAllPlans();
+  const plans = await getPlans();
 
   return (
     <div className="p-8">
@@ -68,13 +68,6 @@ async function TrackingTab({
 }: {
   params: { search?: string; status?: string; plan?: string; cycle?: string };
 }) {
-  const [allSubscriptions, stats, institutions, plans] = await Promise.all([
-    getAllSubscriptions(),
-    getSubscriptionStats(),
-    getSubscribedInstitutions(),
-    getAllPlans(),
-  ]);
-
   // Build filter state from URL
   const filters: SubscriptionFilterState = {
     searchTerm: params.search || "",
@@ -89,26 +82,18 @@ async function TrackingTab({
     filters.planFilter !== "ALL" ||
     filters.cycleFilter !== "ALL";
 
-  // Apply filters server-side
-  let filtered = allSubscriptions;
-
-  if (filters.searchTerm) {
-    const search = filters.searchTerm.toLowerCase();
-    filtered = filtered.filter((s) =>
-      s.institution.name.toLowerCase().includes(search)
-    );
-  }
-  if (filters.statusFilter !== "ALL") {
-    filtered = filtered.filter(
-      (s) => s.paymentStatus === filters.statusFilter
-    );
-  }
-  if (filters.planFilter !== "ALL") {
-    filtered = filtered.filter((s) => s.planId === filters.planFilter);
-  }
-  if (filters.cycleFilter !== "ALL") {
-    filtered = filtered.filter((s) => s.billingCycle === filters.cycleFilter);
-  }
+  // Fetch data with filters
+  const [filtered, stats, institutions, plans] = await Promise.all([
+    getSubscriptions({
+      search: filters.searchTerm || undefined,
+      status: filters.statusFilter as any,
+      planId: filters.planFilter !== "ALL" ? filters.planFilter : undefined,
+      cycle: filters.cycleFilter !== "ALL" ? filters.cycleFilter : undefined,
+    }),
+    getSubscriptionStats(),
+    getAvailableInstitutions(),
+    getPlans(),
+  ]);
 
   return (
     <div className="p-8">
@@ -123,8 +108,7 @@ async function TrackingTab({
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Subscriptions</h1>
           <p className="text-gray-600 mt-1">
-            Track subscription payments across all institutions ({filtered.length} of{" "}
-            {allSubscriptions.length} shown)
+            Track subscription payments across all institutions ({filtered.length} shown)
           </p>
         </div>
         <AddSubscriptionModal />

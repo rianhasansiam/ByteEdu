@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/store/hooks";
-import {
-  updateSubscriptionStatus,
-  deleteSubscription,
-} from "@/lib/db/subscriptions";
 import {
   getStatusBadge,
   getPlanBadge,
@@ -19,6 +16,7 @@ type Props = {
 
 export default function SubscriptionList({ hasActiveFilters }: Props) {
   const subscriptions = useAppSelector((s) => s.subscriptions.subscriptions);
+  const router = useRouter();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -28,11 +26,24 @@ export default function SubscriptionList({ hasActiveFilters }: Props) {
   ) => {
     setUpdatingId(id);
     try {
-      await updateSubscriptionStatus(id, newStatus);
+      const response = await fetch(`/api/superadmin/subscriptions/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ paymentStatus: newStatus }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update status');
+      }
+      
       toast.success(`Payment marked as ${newStatus}`);
+      router.refresh();
     } catch (error) {
       console.error("Failed to update status:", error);
-      toast.error("Failed to update payment status");
+      toast.error(error instanceof Error ? error.message : "Failed to update payment status");
     } finally {
       setUpdatingId(null);
       setOpenMenuId(null);
@@ -42,11 +53,20 @@ export default function SubscriptionList({ hasActiveFilters }: Props) {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this subscription?")) return;
     try {
-      await deleteSubscription(id);
+      const response = await fetch(`/api/superadmin/subscriptions/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete subscription');
+      }
+      
       toast.success("Subscription deleted successfully");
+      router.refresh();
     } catch (error) {
       console.error("Failed to delete:", error);
-      toast.error("Failed to delete subscription");
+      toast.error(error instanceof Error ? error.message : "Failed to delete subscription");
     }
     setOpenMenuId(null);
   };

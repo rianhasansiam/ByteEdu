@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { createNotice, searchUsers, searchInstitutions } from "@/lib/db/notices";
+import { searchUsers, searchInstitutions } from "@/lib/services/superadmin";
 import { Role } from "@/app/generated/prisma/client";
 
 type UserResult = {
@@ -19,6 +20,7 @@ type InstitutionResult = {
 };
 
 export default function CreateNoticeModal() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -155,28 +157,38 @@ export default function CreateNoticeModal() {
 
     setIsSubmitting(true);
     try {
-      await createNotice({
-        title: form.title.trim(),
-        content: form.content.trim(),
-        priority: form.priority,
-        targetType: form.targetType,
-        targetRole:
-          form.targetType === "role" ? (form.targetRole as Role) : undefined,
-        targetUserId:
-          form.targetType === "user" ? form.targetUserId : undefined,
-        targetInstitutionId:
-          form.targetType === "institution" ? form.targetInstitutionId : undefined,
-        isPublished: publish,
+      const response = await fetch('/api/superadmin/notices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          content: form.content.trim(),
+          priority: form.priority,
+          targetType: form.targetType,
+          targetRole:
+            form.targetType === "role" ? (form.targetRole as Role) : undefined,
+          targetUserId:
+            form.targetType === "user" ? form.targetUserId : undefined,
+          targetInstitutionId:
+            form.targetType === "institution" ? form.targetInstitutionId : undefined,
+          isPublished: publish,
+        }),
       });
-
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create notice');
+      }
+      
+      toast.success(publish ? "Notice published!" : "Notice saved as draft");
       setShowModal(false);
       resetForm();
-      toast.success(
-        publish ? "Notice published successfully" : "Notice saved as draft"
-      );
+      router.refresh();
     } catch (error) {
       console.error("Failed to create notice:", error);
-      toast.error("Failed to create notice");
+      toast.error(error instanceof Error ? error.message : "Failed to create notice");
     } finally {
       setIsSubmitting(false);
     }

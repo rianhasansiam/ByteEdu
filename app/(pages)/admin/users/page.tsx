@@ -64,7 +64,7 @@ export default function AdminUsersPage() {
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium text-gray-700">Filter by role:</span>
           <div className="flex gap-2">
-            {["ALL", "TEACHER", "STUDENT"].map((role) => (
+            {["ALL", "ADMIN", "TEACHER", "STUDENT"].map((role) => (
               <button
                 key={role}
                 onClick={() => setFilter(role)}

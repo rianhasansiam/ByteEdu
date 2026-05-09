@@ -4,10 +4,15 @@ import type {
   UserStats,
 } from "@/app/(pages)/superAdmin/users/components/types";
 
+type Institution = {
+  id: string;
+  name: string;
+};
+
 type UsersState = {
   users: User[];
   stats: UserStats;
-  institutions: string[];
+  institutions: Institution[];
 };
 
 const initialState: UsersState = {
@@ -33,7 +38,7 @@ const usersSlice = createSlice({
     setUserStats: (state, action: PayloadAction<UserStats>) => {
       state.stats = action.payload;
     },
-    setUserInstitutions: (state, action: PayloadAction<string[]>) => {
+    setUserInstitutions: (state, action: PayloadAction<Institution[]>) => {
       state.institutions = action.payload;
     },
   },

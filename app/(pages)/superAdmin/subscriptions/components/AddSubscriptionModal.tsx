@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/store/hooks";
-import { createSubscription } from "@/lib/db/subscriptions";
 import { formatCurrency } from "./types";
 
 export default function AddSubscriptionModal() {
+  const router = useRouter();
   const plans = useAppSelector((s) => s.plans.plans);
   const institutions = useAppSelector((s) => s.subscriptions.availableInstitutions);
   const [showModal, setShowModal] = useState(false);
@@ -56,17 +57,29 @@ export default function AddSubscriptionModal() {
 
     setIsSubmitting(true);
     try {
-      await createSubscription({
-        institutionId: form.institutionId,
-        planId: form.planId,
-        amount: parseFloat(form.amount),
-        billingCycle: form.billingCycle,
-        startDate: new Date(form.startDate),
-        endDate: new Date(form.endDate),
-        paymentStatus: form.paymentStatus,
-        transactionId: form.transactionId || undefined,
-        notes: form.notes || undefined,
+      const response = await fetch('/api/superadmin/subscriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          institutionId: form.institutionId,
+          planId: form.planId,
+          amount: parseFloat(form.amount),
+          billingCycle: form.billingCycle,
+          startDate: new Date(form.startDate).toISOString(),
+          endDate: new Date(form.endDate).toISOString(),
+          paymentStatus: form.paymentStatus,
+          transactionId: form.transactionId || undefined,
+          notes: form.notes || undefined,
+        }),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create subscription');
+      }
+
       setShowModal(false);
       setForm({
         institutionId: "",
@@ -80,9 +93,10 @@ export default function AddSubscriptionModal() {
         notes: "",
       });
       toast.success("Subscription assigned successfully");
+      router.refresh();
     } catch (error) {
       console.error("Failed to create subscription:", error);
-      toast.error("Failed to create subscription");
+      toast.error(error instanceof Error ? error.message : "Failed to create subscription");
     } finally {
       setIsSubmitting(false);
     }

@@ -5,20 +5,54 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/store/hooks";
-import { deleteUser } from "@/lib/db/users";
 import { getRoleBadgeColor } from "./types";
+import EditUserModal from "./EditUserModal";
 
-function ActionMenu({ userId, onClose, onDelete }: { userId: string; onClose: () => void; onDelete: (id: string) => void }) {
+type FullUserData = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: "USER" | "ADMIN" | "SUPER_ADMIN" | "TEACHER" | "STUDENT";
+  picture: string | null;
+  institutionId: string | null;
+  institution: { id: string; name: string } | null;
+  sectionId: string | null;
+  section: {
+    id: string;
+    name: string;
+    class: { id: string; name: string };
+  } | null;
+  roll: string | null;
+  teacherAssignments?: {
+    id: string;
+    sectionId: string;
+    section: { id: string; name: string; class: { id: string; name: string } };
+  }[];
+  classTeacherOf?: {
+    id: string;
+    name: string;
+    class: { id: string; name: string };
+  }[];
+};
+
+function ActionMenu({ 
+  userId, 
+  onClose, 
+  onEdit, 
+  onDelete 
+}: { 
+  userId: string; 
+  onClose: () => void; 
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
   return (
     <div className="absolute right-6 top-12 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 w-36">
-      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-        </svg>
-        View
-      </button>
-      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+      <button 
+        onClick={() => { onEdit(userId); onClose(); }}
+        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+      >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
@@ -45,18 +79,53 @@ export default function UsersTableClient({ hasActiveFilters }: Props) {
   const users = useAppSelector((s) => s.users.users);
   const router = useRouter();
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editingUser, setEditingUser] = useState<FullUserData | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+
+  const handleEditUser = async (userId: string) => {
+    setIsLoadingUser(true);
+    try {
+      const response = await fetch(`/api/superadmin/users/${userId}`);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch user');
+      }
+      
+      const data = await response.json();
+      setEditingUser(data.user);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to fetch user details");
+    } finally {
+      setIsLoadingUser(false);
+    }
+  };
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
+    setIsDeleting(true);
     try {
-      await deleteUser(userId);
+      const response = await fetch(`/api/superadmin/users/${userId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
+      
       toast.success("User deleted successfully");
+      router.refresh();
     } catch (error) {
       console.error("Failed to delete user:", error);
-      toast.error("Failed to delete user");
+      toast.error(error instanceof Error ? error.message : "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
+      setShowActionMenu(null);
     }
-    setShowActionMenu(null);
   };
 
   const handleInstitutionClick = (institution: string) => {
@@ -90,102 +159,121 @@ export default function UsersTableClient({ hasActiveFilters }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">User</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Contact</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Institution</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Role</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Created</th>
-              <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    {user.picture ? (
-                      <Image
-                        src={user.picture}
-                        alt={user.name}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <p className="text-gray-600">{user.phone || "-"}</p>
-                </td>
-                <td className="px-6 py-4">
-                  {user.institution ? (
-                    <span
-                      className="text-gray-600 cursor-pointer hover:text-black"
-                      onClick={() => handleInstitutionClick(user.institution!)}
-                    >
-                      {user.institution}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}
-                  >
-                    {user.role.replace("_", " ")}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-gray-600">
-                  {new Date(user.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </td>
-                <td className="px-6 py-4 text-right relative">
-                  <button
-                    onClick={() => setShowActionMenu(showActionMenu === user.id ? null : user.id)}
-                    className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
-                  </button>
-                  {showActionMenu === user.id && (
-                    <ActionMenu
-                      userId={user.id}
-                      onClose={() => setShowActionMenu(null)}
-                      onDelete={handleDeleteUser}
-                    />
-                  )}
-                </td>
+    <>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">User</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Contact</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Institution</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Role</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Created</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {user.picture ? (
+                        <Image
+                          src={user.picture}
+                          alt={user.name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-gray-900">{user.name}</p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-gray-600">{user.phone || "-"}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    {user.institution ? (
+                      <span
+                        className="text-gray-600 cursor-pointer hover:text-black"
+                        onClick={() => handleInstitutionClick(user.institution!)}
+                      >
+                        {user.institution}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}
+                    >
+                      {user.role.replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {new Date(user.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </td>
+                  <td className="px-6 py-4 text-right relative">
+                    <button
+                      onClick={() => setShowActionMenu(showActionMenu === user.id ? null : user.id)}
+                      className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
+                      disabled={isLoadingUser}
+                    >
+                      {isLoadingUser && showActionMenu === user.id ? (
+                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                    {showActionMenu === user.id && (
+                      <ActionMenu
+                        userId={user.id}
+                        onClose={() => setShowActionMenu(null)}
+                        onEdit={handleEditUser}
+                        onDelete={handleDeleteUser}
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Click outside to close action menu */}
+        {showActionMenu && <div className="fixed inset-0 z-0" onClick={() => setShowActionMenu(null)} />}
       </div>
 
-      {/* Click outside to close action menu */}
-      {showActionMenu && <div className="fixed inset-0 z-0" onClick={() => setShowActionMenu(null)} />}
-    </div>
+      {/* Edit User Modal */}
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+        />
+      )}
+    </>
   );
 }
