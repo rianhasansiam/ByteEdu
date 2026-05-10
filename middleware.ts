@@ -9,7 +9,9 @@ export default withAuth(
 
     // Helper function to redirect based on role
     const redirectToDashboard = () => {
-      if (userRole === "TEACHER") {
+      if (userRole === "STUDENT") {
+        return NextResponse.redirect(new URL("/student/dashboard", req.url));
+      } else if (userRole === "TEACHER") {
         return NextResponse.redirect(new URL("/teacher/dashboard", req.url));
       } else if (userRole === "ADMIN") {
         return NextResponse.redirect(new URL("/admin/dashboard", req.url));
@@ -66,6 +68,13 @@ export default withAuth(
       return NextResponse.next();
     }
 
+    if (pathname.startsWith("/student")) {
+      if (userRole !== "STUDENT") {
+        return redirectToDashboard();
+      }
+      return NextResponse.next();
+    }
+
     if (pathname.startsWith("/dashboard")) {
       if (!["ADMIN", "SUPER_ADMIN", "TEACHER", "STUDENT"].includes(userRole)) {
         return NextResponse.redirect(new URL("/", req.url));
@@ -104,5 +113,6 @@ export const config = {
     "/superAdmin/:path*",
     "/admin/:path*",
     "/teacher/:path*",
+    "/student/:path*",
   ],
 };

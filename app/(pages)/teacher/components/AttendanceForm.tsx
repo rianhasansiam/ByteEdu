@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
 type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE" | "EXCUSED";
@@ -48,6 +48,19 @@ export function AttendanceForm({
   );
   const [submitting, setSubmitting] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<AttendanceStatus | "">("");
+
+  // Re-sync attendance map when students prop changes (e.g. date change)
+  useEffect(() => {
+    const map = new Map<string, { status: AttendanceStatus; remarks: string }>();
+    students.forEach((s) => {
+      map.set(s.studentId, {
+        status: s.status || "PRESENT",
+        remarks: s.remarks || "",
+      });
+    });
+    setAttendance(map);
+    setBulkStatus("");
+  }, [students]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => {

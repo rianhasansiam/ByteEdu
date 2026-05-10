@@ -7,7 +7,7 @@ import { InstitutionData, InstitutionFilterState } from "./components/types";
 import InstitutionStatsCards from "./components/InstitutionStatsCards";
 import InstitutionFilters from "./components/InstitutionFilters";
 import InstitutionCards from "./components/InstitutionCards";
-
+import CreateInstitutionModal from "./components/CreateInstitutionModal";
 
 type PageProps = {
   searchParams: Promise<{
@@ -15,7 +15,7 @@ type PageProps = {
     status?: string;
     sort?: string;
   }>;
-}
+};
 
 export default async function InstitutionPage({ searchParams }: PageProps) {
   const params = await searchParams;
@@ -78,6 +78,7 @@ export default async function InstitutionPage({ searchParams }: PageProps) {
             {institutions.length} shown)
           </p>
         </div>
+        <CreateInstitutionModal />
       </div>
 
       <Hydrate name="institutions" data={filtered} />

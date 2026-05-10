@@ -91,6 +91,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    const institutionId = session.user.institutionId;
+    if (!institutionId) {
+      return NextResponse.json({ error: "No institution" }, { status: 400 });
+    }
+
     const body = await request.json();
     const { studentId, sectionId } = body;
 
@@ -101,7 +106,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const student = await prisma.user.update({
+    const student = await prisma.user.findFirst({
+      where: { id: studentId, institutionId, role: "STUDENT" },
+    });
+    if (!student) {
+      return NextResponse.json({ error: "Student not found in your institution" }, { status: 404 });
+    }
+
+    // Verify section belongs to this institution
+    const section = await prisma.section.findFirst({
+      where: { id: sectionId, class: { institutionId } },
+    });
+    if (!section) {
+      return NextResponse.json({ error: "Section not found in your institution" }, { status: 404 });
+    }
+
+    const updatedStudent = await prisma.user.update({
       where: { id: studentId },
       data: { sectionId },
       select: {
@@ -118,7 +138,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, student });
+    return NextResponse.json({ success: true, student: updatedStudent });
   } catch (error) {
     console.error("Error assigning student:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -132,11 +152,22 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    const institutionId = session.user.institutionId;
+    if (!institutionId) return NextResponse.json({ error: "No institution" }, { status: 400 });
+
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
 
     if (!studentId) {
       return NextResponse.json({ error: "Student ID required" }, { status: 400 });
+    }
+
+    // Verify student belongs to this institution
+    const student = await prisma.user.findFirst({
+      where: { id: studentId, institutionId, role: "STUDENT" },
+    });
+    if (!student) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
     await prisma.user.update({

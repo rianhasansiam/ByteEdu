@@ -72,11 +72,7 @@ export default function TeacherSignup() {
       return;
     }
 
-    // For Super Admin, institution is required
-    if (session?.user.role === "SUPER_ADMIN" && !formData.institutionId) {
-      setError("Please select an institution");
-      return;
-    }
+    // Institution is optional — can be assigned later from the admin panel
 
     setLoading(true);
 
@@ -187,7 +183,7 @@ export default function TeacherSignup() {
             {isSuperAdmin && (
               <div>
                 <label htmlFor="institutionId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Institution <span className="text-red-500">*</span>
+                  Institution <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -198,14 +194,13 @@ export default function TeacherSignup() {
                   <select
                     id="institutionId"
                     name="institutionId"
-                    required
                     value={formData.institutionId}
                     onChange={handleChange}
                     disabled={loadingInstitutions}
                     className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none"
                   >
                     <option value="">
-                      {loadingInstitutions ? "Loading institutions..." : "Select an institution"}
+                      {loadingInstitutions ? "Loading institutions..." : "Select an institution (assign later)"}
                     </option>
                     {institutions
                       .filter((inst) => inst.status === "active")
@@ -221,6 +216,9 @@ export default function TeacherSignup() {
                     </svg>
                   </div>
                 </div>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Leave empty to assign the institution later from the dashboard.
+                </p>
               </div>
             )}
 

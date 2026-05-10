@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { exportToCsv } from "@/lib/exportCsv";
 
 interface Section {
   id: string;
@@ -192,9 +193,37 @@ function AttendanceHistoryContent() {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Attendance History</h1>
-        <p className="text-gray-500 mt-1">View attendance records you have submitted</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Attendance History</h1>
+          <p className="text-gray-500 mt-1">View attendance records you have submitted</p>
+        </div>
+        <button
+          onClick={() => {
+            const flat = records.map(r => ({
+              date: r.date,
+              studentName: r.student.name,
+              roll: r.student.roll || "",
+              class: r.section.className,
+              section: r.section.name,
+              status: r.status,
+              remarks: r.remarks || "",
+            }));
+            exportToCsv(flat, "attendance_history", [
+              { key: "date", label: "Date" },
+              { key: "studentName", label: "Student" },
+              { key: "roll", label: "Roll" },
+              { key: "class", label: "Class" },
+              { key: "section", label: "Section" },
+              { key: "status", label: "Status" },
+              { key: "remarks", label: "Remarks" },
+            ]);
+          }}
+          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm"
+          disabled={records.length === 0}
+        >
+          ↓ Export CSV
+        </button>
       </div>
 
       {/* Filters */}

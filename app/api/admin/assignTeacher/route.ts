@@ -163,11 +163,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    const institutionId = session.user.institutionId;
+    if (!institutionId) {
+      return NextResponse.json({ error: "No institution" }, { status: 400 });
+    }
+
     const { searchParams } = new URL(request.url);
     const assignmentId = searchParams.get("id");
 
     if (!assignmentId) {
       return NextResponse.json({ error: "Assignment ID required" }, { status: 400 });
+    }
+
+    // Verify the assignment belongs to this institution
+    const assignment = await prisma.teacherAssignment.findFirst({
+      where: { id: assignmentId, section: { class: { institutionId } } },
+    });
+    if (!assignment) {
+      return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
     }
 
     await prisma.teacherAssignment.delete({

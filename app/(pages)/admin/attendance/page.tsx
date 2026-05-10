@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { exportToCsv } from "@/lib/exportCsv";
 
 interface AttendanceRecord {
   id: string; studentName: string; studentRoll: string | null;
@@ -61,9 +62,26 @@ export default function AdminAttendancePage() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Attendance</h1>
-        <p className="text-gray-600 mt-1">View attendance records across your institution</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Attendance</h1>
+          <p className="text-gray-600 mt-1">View attendance records across your institution</p>
+        </div>
+        <button
+          onClick={() => exportToCsv(records, "attendance", [
+            { key: "studentName", label: "Student" },
+            { key: "studentRoll", label: "Roll" },
+            { key: "className", label: "Class" },
+            { key: "sectionName", label: "Section" },
+            { key: "status", label: "Status" },
+            { key: "date", label: "Date" },
+            { key: "teacherName", label: "Teacher" },
+          ])}
+          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm"
+          disabled={records.length === 0}
+        >
+          ↓ Export CSV
+        </button>
       </div>
 
       {/* Stats */}

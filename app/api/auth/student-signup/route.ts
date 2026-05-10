@@ -6,7 +6,6 @@ import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if user is authenticated and is SUPER_ADMIN, ADMIN, or TEACHER
     const session = await getServerSession(authOptions);
 
     if (
@@ -16,37 +15,17 @@ export async function POST(request: NextRequest) {
         session.user.role !== "TEACHER")
     ) {
       return NextResponse.json(
-        {
-          error:
-            "Unauthorized. Only Super Admins, Admins, and Teachers can create student accounts.",
-        },
+        { error: "Unauthorized. Only Super Admins, Admins, and Teachers can create student accounts." },
         { status: 403 }
       );
     }
 
-    const {
-      name,
-      email,
-      phone,
-      password,
-      sectionId,
-      roll,
-    } = await request.json();
+    const { name, email, phone, password, sectionId, roll } = await request.json();
 
-    // Validation
-    if (
-      !name ||
-      !email ||
-      !phone ||
-      !password ||
-      !sectionId ||
-      !roll
-    ) {
+    // Required fields only: name, email, phone, password
+    if (!name || !email || !phone || !password) {
       return NextResponse.json(
-        {
-          error:
-            "All fields are required: name, email, phone, password, sectionId, and roll",
-        },
+        { error: "Name, email, phone, and password are required" },
         { status: 400 }
       );
     }
@@ -59,10 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
@@ -70,63 +46,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify section exists and get institution from section
-    const section = await prisma.section.findUnique({
-      where: { id: sectionId },
-      include: {
-        class: {
-          include: {
-            institution: true,
-          },
-        },
-      },
-    });
+    // Resolve institutionId
+    let institutionId: string | null = null;
 
-    if (!section) {
-      return NextResponse.json(
-        { error: "Section not found" },
-        { status: 404 }
-      );
-    }
+    if (sectionId) {
+      // If section is provided, validate it and get institution from it
+      const section = await prisma.section.findUnique({
+        where: { id: sectionId },
+        include: { class: { include: { institution: true } } },
+      });
 
-    // Get the creator's institution (admin/teacher)
-    const creator = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { institutionId: true },
-    });
+      if (!section) {
+        return NextResponse.json({ error: "Section not found" }, { status: 404 });
+      }
 
-    // For non-SUPER_ADMIN, verify the section belongs to their institution
-    if (session.user.role !== "SUPER_ADMIN") {
-      if (creator?.institutionId !== section.class.institutionId) {
-        return NextResponse.json(
-          { error: "You can only add students to sections in your institution" },
-          { status: 403 }
-        );
+      // For non-SUPER_ADMIN, ensure section belongs to their institution
+      if (session.user.role !== "SUPER_ADMIN") {
+        if (session.user.institutionId !== section.class.institutionId) {
+          return NextResponse.json(
+            { error: "You can only add students to sections in your institution" },
+            { status: 403 }
+          );
+        }
+      }
+
+      institutionId = section.class.institutionId;
+    } else {
+      // No section provided — get institution from session (for ADMIN/TEACHER)
+      // For SUPER_ADMIN without sectionId, institutionId stays null (unassigned)
+      if (session.user.role !== "SUPER_ADMIN") {
+        institutionId = session.user.institutionId ?? null;
       }
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create student user with institution from section
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
-        institutionId: section.class.institutionId,
+        institutionId,
         password: hashedPassword,
         role: "STUDENT",
-        sectionId,
-        roll,
+        sectionId: sectionId || null,
+        roll: roll || null,
       },
       include: {
         institution: true,
-        section: {
-          include: {
-            class: true,
-          },
-        },
+        section: { include: { class: true } },
       },
     });
 
@@ -150,9 +118,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Student signup error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

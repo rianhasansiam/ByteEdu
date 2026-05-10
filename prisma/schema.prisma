@@ -53,6 +53,13 @@ model User {
   attendancesTaken     Attendance[]         @relation("AttendanceTakenBy")
   studentAttendances   Attendance[]         @relation("StudentAttendance")
   studentMarks         StudentMark[]        @relation("StudentMarks")
+  // Student Panel relations
+  submissions          AssignmentSubmission[] @relation("StudentSubmissions")
+  notifications        Notification[]         @relation("UserNotifications")
+  // Teacher Panel relations (new)
+  routinesTeaching     ClassRoutine[]         @relation("RoutineTeacher")
+  assignmentsCreated   Assignment[]           @relation("AssignmentTeacher")
+  materialsUploaded    StudyMaterial[]        @relation("MaterialTeacher")
 }
 
 model Institution {
@@ -68,6 +75,7 @@ model Institution {
   users         User[]
   classes       Class[]
   subjects      Subject[]
+  exams         Exam[]
 }
 
 model Plan {
@@ -118,7 +126,7 @@ model Notice {
 }
 
 // ============================================
-// NEW MODELS FOR TEACHER PANEL
+// CLASS / SECTION / SUBJECT MODELS
 // ============================================
 
 model Class {
@@ -150,6 +158,10 @@ model Section {
   students           User[]              @relation("StudentSection")
   teacherAssignments TeacherAssignment[]
   attendances        Attendance[]
+  routines           ClassRoutine[]
+  exams              Exam[]
+  assignments        Assignment[]
+  studyMaterials     StudyMaterial[]
   
   @@unique([name, classId])
 }
@@ -166,6 +178,10 @@ model Subject {
   // Relations
   teacherAssignments TeacherAssignment[]
   studentMarks       StudentMark[]
+  routines           ClassRoutine[]
+  exams              Exam[]
+  assignments        Assignment[]
+  studyMaterials     StudyMaterial[]
   
   @@unique([name, institutionId])
 }
@@ -214,5 +230,108 @@ model StudentMark {
   date        DateTime  @default(now())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+// ============================================
+// STUDENT PANEL MODELS
+// ============================================
+
+model ClassRoutine {
+  id          String   @id @default(cuid())
+  sectionId   String
+  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId   String
+  teacher     User     @relation("RoutineTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int                // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime   String             // "09:00"
+  endTime     String             // "09:45"
+  roomNumber  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([sectionId, dayOfWeek, startTime])
+}
+
+model Exam {
+  id            String      @id @default(cuid())
+  name          String                          // "Mid Term", "Final"
+  subjectId     String
+  subject       Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  sectionId     String
+  section       Section     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  date          DateTime    @db.Date
+  startTime     String?                         // "10:00"
+  endTime       String?                         // "12:00"
+  roomNumber    String?
+  syllabus      String?
+  instructions  String?
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Assignment {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  sectionId     String
+  section       Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId     String
+  subject       Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId     String
+  teacher       User     @relation("AssignmentTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  dueDate       DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  submissions   AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id            String     @id @default(cuid())
+  assignmentId  String
+  assignment    Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User       @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+  content       String?
+  fileUrl       String?
+  submittedAt   DateTime   @default(now())
+  isLate        Boolean    @default(false)
+  grade         String?
+  feedback      String?
+  
+  @@unique([assignmentId, studentId])
+}
+
+model StudyMaterial {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  fileUrl       String?
+  fileType      String?            // "pdf", "doc", "image", "video", "link"
+  sectionId     String
+  section       Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId     String
+  subject       Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId     String
+  teacher       User     @relation("MaterialTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  type        String   @default("info")    // info, success, warning, urgent
+  category    String   @default("general") // attendance, assignment, result, notice, exam, general
+  isRead      Boolean  @default(false)
+  link        String?                      // optional link to navigate to
+  createdAt   DateTime @default(now())
 }
 

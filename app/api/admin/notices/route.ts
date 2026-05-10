@@ -86,8 +86,15 @@ export async function PUT(request: NextRequest) {
     if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
+    const institutionId = session.user.institutionId;
+    if (!institutionId) return NextResponse.json({ error: "No institution" }, { status: 400 });
+
     const { id, title, content, priority, isPublished } = await request.json();
     if (!id) return NextResponse.json({ error: "Notice ID required" }, { status: 400 });
+
+    // Verify notice belongs to this institution
+    const existing = await prisma.notice.findFirst({ where: { id, targetInstitutionId: institutionId } });
+    if (!existing) return NextResponse.json({ error: "Notice not found" }, { status: 404 });
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
@@ -112,9 +119,16 @@ export async function DELETE(request: NextRequest) {
     if (!session?.user || !["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
+    const institutionId = session.user.institutionId;
+    if (!institutionId) return NextResponse.json({ error: "No institution" }, { status: 400 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "Notice ID required" }, { status: 400 });
+
+    // Verify notice belongs to this institution
+    const existing = await prisma.notice.findFirst({ where: { id, targetInstitutionId: institutionId } });
+    if (!existing) return NextResponse.json({ error: "Notice not found" }, { status: 404 });
 
     await prisma.notice.delete({ where: { id } });
     return NextResponse.json({ success: true });

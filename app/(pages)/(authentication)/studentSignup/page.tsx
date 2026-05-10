@@ -142,10 +142,6 @@ export default function StudentSignup() {
       return;
     }
 
-    if (!formData.sectionId) {
-      setError("Please select a section");
-      return;
-    }
 
     setLoading(true);
 
@@ -159,8 +155,8 @@ export default function StudentSignup() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          sectionId: formData.sectionId,
-          roll: formData.roll,
+          sectionId: formData.sectionId || null,
+          roll: formData.roll || null,
           password: formData.password,
         }),
       });
@@ -289,81 +285,80 @@ export default function StudentSignup() {
               </div>
             )}
 
-            {/* Class and Section Row */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Class Field */}
-              <div>
-                <label htmlFor="classId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Class <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <select
-                    id="classId"
-                    name="classId"
-                    required
-                    value={formData.classId}
-                    onChange={handleChange}
-                    disabled={loadingClasses || (isSuperAdmin && !formData.institutionId)}
-                    className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none disabled:opacity-50"
-                  >
-                    <option value="">
-                      {loadingClasses ? "Loading..." : "Select class"}
-                    </option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name}
+            {/* Class and Section Row - Optional */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-700">Class &amp; Section</p>
+                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Optional — assign later</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Class Field */}
+                <div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <select
+                      id="classId"
+                      name="classId"
+                      value={formData.classId}
+                      onChange={handleChange}
+                      disabled={loadingClasses || (isSuperAdmin && !formData.institutionId)}
+                      className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none disabled:opacity-50"
+                    >
+                      <option value="">
+                        {loadingClasses ? "Loading..." : "Select class"}
                       </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                      {classes.map((cls) => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Section Field */}
-              <div>
-                <label htmlFor="sectionId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Section <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <select
-                    id="sectionId"
-                    name="sectionId"
-                    required
-                    value={formData.sectionId}
-                    onChange={handleChange}
-                    disabled={!formData.classId}
-                    className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none disabled:opacity-50"
-                  >
-                    <option value="">
-                      {!formData.classId ? "Select class first" : "Select section"}
-                    </option>
-                    {sections.map((sec) => (
-                      <option key={sec.id} value={sec.id}>
-                        {sec.name}
+                {/* Section Field */}
+                <div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <select
+                      id="sectionId"
+                      name="sectionId"
+                      value={formData.sectionId}
+                      onChange={handleChange}
+                      disabled={!formData.classId}
+                      className="block w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none disabled:opacity-50"
+                    >
+                      <option value="">
+                        {!formData.classId ? "Select class first" : "Select section"}
                       </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                      {sections.map((sec) => (
+                        <option key={sec.id} value={sec.id}>
+                          {sec.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
+              <p className="text-xs text-gray-400">You can assign the student to a class and section later from the Users dashboard.</p>
             </div>
 
             {/* Name Field */}
@@ -440,10 +435,10 @@ export default function StudentSignup() {
                 </div>
               </div>
 
-              {/* Roll Field */}
+              {/* Roll Field - Optional */}
               <div>
                 <label htmlFor="roll" className="block text-sm font-medium text-gray-700 mb-1">
-                  Roll No. <span className="text-red-500">*</span>
+                  Roll No. <span className="text-xs text-gray-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -455,7 +450,6 @@ export default function StudentSignup() {
                     id="roll"
                     name="roll"
                     type="text"
-                    required
                     value={formData.roll}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
