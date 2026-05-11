@@ -1,29 +1,29 @@
-const teamMembers = [
-  {
-    name: "Alex Johnson",
-    role: "Lead Developer",
-    avatar: "👨‍💻",
-    description: "Full-stack developer with 8+ years of experience in EdTech solutions.",
-  },
-  {
-    name: "Sarah Chen",
-    role: "UI/UX Designer",
-    avatar: "👩‍🎨",
-    description: "Creating intuitive and beautiful interfaces for educational platforms.",
-  },
-  {
-    name: "Michael Brown",
-    role: "Backend Engineer",
-    avatar: "👨‍🔧",
-    description: "Database architect and API specialist ensuring robust performance.",
-  },
-  {
-    name: "Emily Davis",
-    role: "Project Manager",
-    avatar: "👩‍💼",
-    description: "Coordinating development efforts and ensuring timely delivery.",
-  },
-];
+// const teamMembers = [
+//   {
+//     name: "Alex Johnson",
+//     role: "Lead Developer",
+//     avatar: "👨‍💻",
+//     description: "Full-stack developer with 8+ years of experience in EdTech solutions.",
+//   },
+//   {
+//     name: "Sarah Chen",
+//     role: "UI/UX Designer",
+//     avatar: "👩‍🎨",
+//     description: "Creating intuitive and beautiful interfaces for educational platforms.",
+//   },
+//   {
+//     name: "Michael Brown",
+//     role: "Backend Engineer",
+//     avatar: "👨‍🔧",
+//     description: "Database architect and API specialist ensuring robust performance.",
+//   },
+//   {
+//     name: "Emily Davis",
+//     role: "Project Manager",
+//     avatar: "👩‍💼",
+//     description: "Coordinating development efforts and ensuring timely delivery.",
+//   },
+// ];
 
 export default function TeamSection() {
   return (
@@ -76,23 +76,40 @@ export default function TeamSection() {
           </div>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 stagger-children">
-          {teamMembers.map((member, index) => (
-            <div
-              key={index}
-              className="glass-card rounded-2xl p-5 sm:p-6 text-center group"
-            >
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl mx-auto mb-3 sm:mb-4 flex items-center justify-center text-3xl sm:text-4xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm">
-                {member.avatar}
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-black">{member.name}</h3>
-              <p className="text-gray-400 text-xs sm:text-sm font-medium mb-2">{member.role}</p>
-              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">{member.description}</p>
+        {/* Coming Soon */}
+        <div className="glass-card rounded-2xl sm:rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white -z-0" />
+          <div className="relative z-10">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-gray-900 to-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center shadow-xl">
+              <span className="text-4xl sm:text-5xl">👥</span>
             </div>
-          ))}
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+              Coming Soon
+            </h3>
+            <p className="text-gray-500 max-w-md mx-auto text-sm sm:text-base leading-relaxed">
+              Our talented team members will be introduced here shortly. Stay tuned!
+            </p>
+            <div className="flex justify-center gap-2 mt-6">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2.5 h-2.5 rounded-full bg-gray-300"
+                  style={{
+                    animation: `pulse 1.5s ease-in-out ${i * 0.3}s infinite`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.3); }
+        }
+      `}</style>
     </section>
   );
 }
