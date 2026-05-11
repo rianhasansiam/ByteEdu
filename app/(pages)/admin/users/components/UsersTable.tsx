@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { User, FullUserData, getRoleBadgeColor } from "./types";
 import AdminEditUserModal from "./EditUserModal";
 
@@ -76,7 +77,7 @@ export default function AdminUsersTable({ users, hasActiveFilters, onRefresh }: 
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+    if (!(await sweetConfirm("Are you sure you want to delete this user? This action cannot be undone."))) return;
 
     setIsDeleting(true);
     try {

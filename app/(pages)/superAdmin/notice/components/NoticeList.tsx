@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { useAppSelector } from "@/lib/store/hooks";
 import {
   getPriorityBadgeColor,
@@ -21,7 +22,7 @@ export default function NoticeList({ hasActiveFilters }: Props) {
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this notice?")) return;
+    if (!(await sweetConfirm("Are you sure you want to delete this notice?"))) return;
     setDeletingId(id);
     try {
       const response = await fetch(`/api/superadmin/notices/${id}`, {

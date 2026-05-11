@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { useAppSelector } from "@/lib/store/hooks";
 import { formatCurrency } from "./types";
 
@@ -61,7 +62,7 @@ export default function PlanCards() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this plan? Plans with subscriptions cannot be deleted.")) return;
+    if (!(await sweetConfirm("Delete this plan? Plans with subscriptions cannot be deleted."))) return;
     setDeletingId(id);
     try {
       const response = await fetch(`/api/superadmin/plans/${id}`, {

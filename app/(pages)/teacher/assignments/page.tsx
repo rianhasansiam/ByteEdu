@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface TeacherSection { id: string; sectionName: string; className: string; subjectId: string; subjectName: string; }
 interface Assignment {
@@ -55,7 +56,7 @@ export default function TeacherAssignmentsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this assignment?")) return;
+    if (!(await sweetConfirm("Delete this assignment?"))) return;
     const res = await fetch(`/api/teacher/assignments?id=${id}`, { method: "DELETE" });
     if (res.ok) { toast.success("Deleted"); fetchData(); } else toast.error("Failed");
   };

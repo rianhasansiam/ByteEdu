@@ -293,7 +293,7 @@ export async function createInstitution(data: CreateInstitutionInput) {
   
   // Invalidate caches
   await invalidateInstitutionCache();
-  revalidateTag(CACHE_TAGS.institutions, "max");
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
   
   return institution;
 }
@@ -327,8 +327,8 @@ export async function updateInstitution(id: string, data: UpdateInstitutionInput
   
   // Invalidate caches
   await invalidateInstitutionCache();
-  revalidateTag(CACHE_TAGS.institutions, "max");
-  revalidateTag(CACHE_TAGS.users, "max"); // Users have institution relation
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
+  revalidateTag(CACHE_TAGS.users, { expire: 0 }); // Users have institution relation
   
   return institution;
 }
@@ -351,7 +351,7 @@ export async function toggleInstitutionStatus(id: string) {
   
   // Invalidate caches
   await invalidateInstitutionCache();
-  revalidateTag(CACHE_TAGS.institutions, "max");
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
   
   return institution;
 }
@@ -385,7 +385,7 @@ export async function deleteInstitution(id: string) {
   
   // Invalidate caches
   await invalidateInstitutionCache();
-  revalidateTag(CACHE_TAGS.institutions, "max");
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
   
   return { success: true };
 }

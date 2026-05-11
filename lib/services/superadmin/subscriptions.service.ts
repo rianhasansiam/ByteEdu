@@ -305,7 +305,7 @@ export async function createSubscription(data: CreateSubscriptionInput) {
   
   // Invalidate caches
   await invalidateSubscriptionCache();
-  revalidateTag(CACHE_TAGS.subscriptions, "max");
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
   
   return subscription;
 }
@@ -346,7 +346,7 @@ export async function updateSubscription(id: string, data: UpdateSubscriptionInp
   
   // Invalidate caches
   await invalidateSubscriptionCache();
-  revalidateTag(CACHE_TAGS.subscriptions, "max");
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
   
   return subscription;
 }
@@ -373,7 +373,7 @@ export async function updateSubscriptionStatus(
   
   // Invalidate caches
   await invalidateSubscriptionCache();
-  revalidateTag(CACHE_TAGS.subscriptions, "max");
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
   
   return subscription;
 }
@@ -391,7 +391,7 @@ export async function deleteSubscription(id: string) {
   
   // Invalidate caches
   await invalidateSubscriptionCache();
-  revalidateTag(CACHE_TAGS.subscriptions, "max");
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
   
   return { success: true };
 }
@@ -428,7 +428,7 @@ export async function createPlan(data: CreatePlanInput) {
     },
   });
   
-  revalidateTag(CACHE_TAGS.plans, "max");
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   return plan;
 }
 
@@ -452,7 +452,7 @@ export async function updatePlan(id: string, data: UpdatePlanInput) {
     },
   });
   
-  revalidateTag(CACHE_TAGS.plans, "max");
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   return plan;
 }
 
@@ -470,7 +470,7 @@ export async function togglePlanStatus(id: string) {
     data: { isActive: !existing.isActive },
   });
   
-  revalidateTag(CACHE_TAGS.plans, "max");
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   return plan;
 }
 
@@ -490,7 +490,7 @@ export async function deletePlan(id: string) {
   }
   
   await prisma.plan.delete({ where: { id } });
-  revalidateTag(CACHE_TAGS.plans, "max");
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   
   return { success: true };
 }

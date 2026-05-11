@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 
@@ -114,7 +114,7 @@ export async function createSubscription(data: {
     },
   });
 
-  updateTag(CACHE_TAGS.subscriptions);
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
   return subscription;
 }
 
@@ -130,11 +130,11 @@ export async function updateSubscriptionStatus(
     },
   });
 
-  updateTag(CACHE_TAGS.subscriptions);
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
   return subscription;
 }
 
 export async function deleteSubscription(id: string) {
   await prisma.subscription.delete({ where: { id } });
-  updateTag(CACHE_TAGS.subscriptions);
+  revalidateTag(CACHE_TAGS.subscriptions, { expire: 0 });
 }

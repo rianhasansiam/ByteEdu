@@ -89,7 +89,7 @@ export const createClass = async (
   });
 
   // Invalidate cache
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -104,7 +104,7 @@ export const updateClass = async (
     data: { name, displayOrder },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -114,7 +114,7 @@ export const deleteClass = async (classId: string) => {
     where: { id: classId },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -149,7 +149,7 @@ export const createSection = async (
     },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -184,7 +184,7 @@ export const updateSection = async (
     },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -194,7 +194,7 @@ export const deleteSection = async (sectionId: string) => {
     where: { id: sectionId },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -275,7 +275,7 @@ export const assignStudentToSection = async (
     },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -292,7 +292,7 @@ export const removeStudentFromSection = async (studentId: string) => {
     },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -365,7 +365,7 @@ export const assignTeacherToSection = async (
     },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };
@@ -375,7 +375,7 @@ export const removeTeacherFromSection = async (assignmentId: string) => {
     where: { id: assignmentId },
   });
 
-  revalidateTag(CACHE_TAGS.classes, "max");
+  revalidateTag(CACHE_TAGS.classes, { expire: 0 });
 
   return result;
 };

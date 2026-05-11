@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { AttendanceStatus } from "@/app/generated/prisma/client";
 import { CACHE_TAGS } from "@/lib/cache-tags";
@@ -553,7 +553,7 @@ export async function submitAttendance(
   const result = await prisma.$transaction(operations);
 
   // Invalidate cache
-  updateTag(CACHE_TAGS.attendance);
+  revalidateTag(CACHE_TAGS.attendance, { expire: 0 });
 
   return result;
 }
@@ -577,7 +577,7 @@ export async function updateAttendanceRecord(
     },
   });
 
-  updateTag(CACHE_TAGS.attendance);
+  revalidateTag(CACHE_TAGS.attendance, { expire: 0 });
 
   return attendance;
 }

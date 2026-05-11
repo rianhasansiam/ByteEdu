@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Exam {
   id: string; name: string; subjectName: string; className: string; sectionName: string;
@@ -59,7 +60,7 @@ export default function AdminExamsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this exam?")) return;
+    if (!(await sweetConfirm("Delete this exam?"))) return;
     const res = await fetch(`/api/admin/exams?id=${id}`, { method: "DELETE" });
     if (res.ok) { toast.success("Deleted"); fetchData(); } else toast.error("Failed");
   };

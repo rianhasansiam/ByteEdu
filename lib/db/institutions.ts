@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 
@@ -154,7 +154,7 @@ export async function createInstitution(data: {
     },
   });
 
-  updateTag(CACHE_TAGS.institutions);
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
   return institution;
 }
 
@@ -167,8 +167,8 @@ export async function updateInstitutionStatus(
     data: { status },
   });
 
-  updateTag(CACHE_TAGS.institutions);
-  updateTag(CACHE_TAGS.users);
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
 }
 
 // Legacy function - update by name (for backward compatibility)
@@ -182,6 +182,6 @@ export async function updateInstitutionStatusByName(
     create: { name, status },
   });
 
-  updateTag(CACHE_TAGS.institutions);
-  updateTag(CACHE_TAGS.users);
+  revalidateTag(CACHE_TAGS.institutions, { expire: 0 });
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
 }

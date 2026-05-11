@@ -286,7 +286,7 @@ export async function createNotice(data: CreateNoticeInput) {
   
   // Invalidate caches
   await invalidateNoticeCache();
-  revalidateTag(CACHE_TAGS.notices, "max");
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   
   return notice;
 }
@@ -333,7 +333,7 @@ export async function updateNotice(id: string, data: UpdateNoticeInput) {
   
   // Invalidate caches
   await invalidateNoticeCache();
-  revalidateTag(CACHE_TAGS.notices, "max");
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   
   return notice;
 }
@@ -359,7 +359,7 @@ export async function toggleNoticePublish(id: string) {
   
   // Invalidate caches
   await invalidateNoticeCache();
-  revalidateTag(CACHE_TAGS.notices, "max");
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   
   return notice;
 }
@@ -377,7 +377,7 @@ export async function deleteNotice(id: string) {
   
   // Invalidate caches
   await invalidateNoticeCache();
-  revalidateTag(CACHE_TAGS.notices, "max");
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   
   return { success: true };
 }

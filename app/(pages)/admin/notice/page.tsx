@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Notice {
   id: string; title: string; content: string; priority: string;
@@ -58,7 +59,7 @@ export default function AdminNoticePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this notice?")) return;
+    if (!(await sweetConfirm("Delete this notice?"))) return;
     try {
       const res = await fetch(`/api/admin/notices?id=${id}`, { method: "DELETE" });
       if (res.ok) { toast.success("Deleted"); setNotices((prev) => prev.filter((n) => n.id !== id)); }

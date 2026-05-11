@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 export interface TeacherAssignment {
   id: string;
@@ -31,7 +32,7 @@ export default function TeacherList({
   const [removing, setRemoving] = useState<string | null>(null);
 
   const handleRemoveTeacher = async (assignmentId: string) => {
-    if (!window.confirm("Are you sure you want to remove this teacher?"))
+    if (!(await sweetConfirm("Are you sure you want to remove this teacher?")))
       return;
 
     setRemoving(assignmentId);

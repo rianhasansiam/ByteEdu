@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { Student } from "./types";
 
 interface StudentListProps {
@@ -19,9 +20,9 @@ export default function StudentList({
 
   const handleRemoveStudent = async (studentId: string) => {
     if (
-      !window.confirm(
+      !(await sweetConfirm(
         "Are you sure you want to remove this student from the section?"
-      )
+      ))
     )
       return;
 

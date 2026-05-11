@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { useAppSelector } from "@/lib/store/hooks";
 import {
   getStatusBadge,
@@ -51,7 +52,7 @@ export default function SubscriptionList({ hasActiveFilters }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this subscription?")) return;
+    if (!(await sweetConfirm("Are you sure you want to delete this subscription?"))) return;
     try {
       const response = await fetch(`/api/superadmin/subscriptions/${id}`, {
         method: 'DELETE',

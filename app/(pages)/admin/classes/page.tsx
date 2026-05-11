@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Section {
   id: string;
@@ -110,7 +111,7 @@ export default function AdminClassesPage() {
   };
 
   const handleDelete = async (type: string, id: string, name: string) => {
-    if (!confirm(`Delete ${type} "${name}"? This will also delete all related data.`)) return;
+    if (!(await sweetConfirm(`Delete ${type} "${name}"? This will also delete all related data.`))) return;
     try {
       const res = await fetch(`/api/admin/classes?type=${type}&id=${id}`, { method: "DELETE" });
       if (res.ok) {

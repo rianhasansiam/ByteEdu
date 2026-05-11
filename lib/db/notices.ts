@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/app/generated/prisma/client";
 import { CACHE_TAGS } from "@/lib/cache-tags";
@@ -105,7 +105,7 @@ export async function createNotice(data: {
     },
   });
 
-  updateTag(CACHE_TAGS.notices);
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   return notice;
 }
 
@@ -128,13 +128,13 @@ export async function updateNotice(
     data,
   });
 
-  updateTag(CACHE_TAGS.notices);
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   return notice;
 }
 
 export async function deleteNotice(id: string) {
   await prisma.notice.delete({ where: { id } });
-  updateTag(CACHE_TAGS.notices);
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
 }
 
 export async function toggleNoticePublish(id: string) {
@@ -150,6 +150,6 @@ export async function toggleNoticePublish(id: string) {
     },
   });
 
-  updateTag(CACHE_TAGS.notices);
+  revalidateTag(CACHE_TAGS.notices, { expire: 0 });
   return updated;
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { useAppSelector } from "@/lib/store/hooks";
 import { getRoleBadgeColor } from "./types";
 import EditUserModal from "./EditUserModal";
@@ -104,7 +105,7 @@ export default function UsersTableClient({ hasActiveFilters }: Props) {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    if (!(await sweetConfirm("Are you sure you want to delete this user?"))) return;
 
     setIsDeleting(true);
     try {

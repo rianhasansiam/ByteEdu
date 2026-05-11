@@ -339,8 +339,8 @@ export async function createUser(data: CreateUserInput) {
   
   // Invalidate caches
   await invalidateUserCache();
-  revalidateTag(CACHE_TAGS.users, "max");
-  revalidateTag(CACHE_TAGS.userStats, "max");
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
   
   return user;
 }
@@ -454,8 +454,8 @@ export async function updateUser(id: string, data: UpdateUserInput) {
   
   // Invalidate caches
   await invalidateUserCache();
-  revalidateTag(CACHE_TAGS.users, "max");
-  revalidateTag(CACHE_TAGS.userStats, "max");
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
   
   return user;
 }
@@ -484,8 +484,8 @@ export async function deleteUser(id: string) {
   
   // Invalidate caches
   await invalidateUserCache();
-  revalidateTag(CACHE_TAGS.users, "max");
-  revalidateTag(CACHE_TAGS.userStats, "max");
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
   
   return { success: true };
 }
@@ -522,8 +522,8 @@ export async function updateUserRole(id: string, role: Role) {
   
   // Invalidate caches
   await invalidateUserCache();
-  revalidateTag(CACHE_TAGS.users, "max");
-  revalidateTag(CACHE_TAGS.userStats, "max");
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
   
   return user;
 }

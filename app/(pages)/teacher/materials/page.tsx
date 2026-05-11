@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Material {
   id: string; title: string; description: string | null; fileUrl: string | null;
@@ -47,7 +48,7 @@ export default function TeacherMaterialsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this material?")) return;
+    if (!(await sweetConfirm("Delete this material?"))) return;
     const res = await fetch(`/api/teacher/materials?id=${id}`, { method: "DELETE" });
     if (res.ok) { toast.success("Deleted"); fetchData(); } else toast.error("Failed");
   };

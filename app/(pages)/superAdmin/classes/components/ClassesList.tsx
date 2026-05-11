@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { ClassData, Student, Subject } from "./types";
 import SectionsList from "./SectionsList";
 import EditClassModal from "./EditClassModal";
@@ -29,7 +30,7 @@ export default function ClassesList({
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   const handleDelete = async (classId: string) => {
-    if (!window.confirm("Are you sure you want to delete this class?")) return;
+    if (!(await sweetConfirm("Are you sure you want to delete this class?"))) return;
 
     setDeletingId(classId);
     try {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Routine {
   id: string; className: string; sectionName: string; sectionId: string;
@@ -66,7 +67,7 @@ export default function AdminRoutinePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this routine slot?")) return;
+    if (!(await sweetConfirm("Delete this routine slot?"))) return;
     const res = await fetch(`/api/admin/routine?id=${id}`, { method: "DELETE" });
     if (res.ok) { toast.success("Deleted"); fetchData(); } else toast.error("Failed");
   };

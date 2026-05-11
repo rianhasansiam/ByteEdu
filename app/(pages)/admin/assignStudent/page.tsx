@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Student {
   id: string; name: string; email: string; roll: string | null;
@@ -65,7 +66,7 @@ export default function AdminAssignStudentPage() {
   };
 
   const handleRemove = async (studentId: string) => {
-    if (!confirm("Remove student from section?")) return;
+    if (!(await sweetConfirm("Remove student from section?"))) return;
     setSubmitting(studentId);
     try {
       const res = await fetch(`/api/admin/assignStudent?studentId=${studentId}`, { method: "DELETE" });

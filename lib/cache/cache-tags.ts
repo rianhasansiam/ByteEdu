@@ -106,11 +106,11 @@ export function getAttendanceRelatedTags(
   return tags;
 }
 
-/** Bulk revalidate an array of tags */
+/** Bulk invalidate an array of cache tags (immediate) */
 export async function revalidateTags(tags: string[]): Promise<void> {
   // Dynamic import to avoid issues in non-server contexts
   const { revalidateTag } = await import("next/cache");
   for (const tag of tags) {
-    revalidateTag(tag, "max");
+    revalidateTag(tag, { expire: 0 });
   }
 }

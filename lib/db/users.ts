@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/app/generated/prisma/client";
 import { CACHE_TAGS } from "@/lib/cache-tags";
@@ -151,9 +151,9 @@ export async function createUser(data: {
   });
 
   // Update all user-related caches
-  updateTag(CACHE_TAGS.users);
-  updateTag(CACHE_TAGS.userStats);
-  updateTag(CACHE_TAGS.userInstitutions);
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userInstitutions, { expire: 0 });
 
   return user;
 }
@@ -178,9 +178,9 @@ export async function updateUser(
   });
 
   // Update all user-related caches
-  updateTag(CACHE_TAGS.users);
-  updateTag(CACHE_TAGS.userStats);
-  updateTag(CACHE_TAGS.userInstitutions);
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userInstitutions, { expire: 0 });
 
   return user;
 }
@@ -191,9 +191,9 @@ export async function deleteUser(id: string) {
   });
 
   // Update all user-related caches
-  updateTag(CACHE_TAGS.users);
-  updateTag(CACHE_TAGS.userStats);
-  updateTag(CACHE_TAGS.userInstitutions);
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userInstitutions, { expire: 0 });
 }
 
 export async function updateUserRole(id: string, role: Role) {
@@ -203,8 +203,8 @@ export async function updateUserRole(id: string, role: Role) {
   });
 
   // Update all user-related caches
-  updateTag(CACHE_TAGS.users);
-  updateTag(CACHE_TAGS.userStats);
+  revalidateTag(CACHE_TAGS.users, { expire: 0 });
+  revalidateTag(CACHE_TAGS.userStats, { expire: 0 });
 
   return user;
 }

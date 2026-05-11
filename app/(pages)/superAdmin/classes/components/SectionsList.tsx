@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 import { SectionData, TeacherOption, Student, Subject } from "./types";
 import CreateSectionModal from "./CreateSectionModal";
 import EditSectionModal from "./EditSectionModal";
@@ -52,7 +53,7 @@ export default function SectionsList({
   }>({});
 
   const handleDelete = async (sectionId: string) => {
-    if (!window.confirm("Are you sure you want to delete this section?"))
+    if (!(await sweetConfirm("Are you sure you want to delete this section?")))
       return;
 
     setDeletingId(sectionId);

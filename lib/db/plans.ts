@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 
@@ -48,7 +48,7 @@ export async function createPlan(data: {
     },
   });
 
-  updateTag(CACHE_TAGS.plans);
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   return plan;
 }
 
@@ -67,7 +67,7 @@ export async function updatePlan(
     data,
   });
 
-  updateTag(CACHE_TAGS.plans);
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   return plan;
 }
 
@@ -79,7 +79,7 @@ export async function deletePlan(id: string) {
   }
 
   await prisma.plan.delete({ where: { id } });
-  updateTag(CACHE_TAGS.plans);
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
 }
 
 export async function togglePlanStatus(id: string) {
@@ -91,6 +91,6 @@ export async function togglePlanStatus(id: string) {
     data: { isActive: !plan.isActive },
   });
 
-  updateTag(CACHE_TAGS.plans);
+  revalidateTag(CACHE_TAGS.plans, { expire: 0 });
   return updated;
 }

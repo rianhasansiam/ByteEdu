@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { sweetConfirm } from "@/lib/sweetConfirm";
 
 interface Assignment {
   id: string;
@@ -95,7 +96,7 @@ export default function AdminAssignTeacherPage() {
   };
 
   const handleRemove = async (id: string) => {
-    if (!confirm("Remove this assignment?")) return;
+    if (!(await sweetConfirm("Remove this assignment?"))) return;
     try {
       const res = await fetch(`/api/admin/assignTeacher?id=${id}`, { method: "DELETE" });
       if (res.ok) {
