@@ -3,7 +3,7 @@
 // ============================================
 
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "../../app/generated/prisma/client";
 
 // ---------- READS ----------
 

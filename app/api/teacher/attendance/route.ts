@@ -8,7 +8,7 @@ import {
   submitAttendance,
   AttendanceRecord
 } from "@/lib/db/teacher";
-import { AttendanceStatus } from "@/app/generated/prisma/client";
+import { AttendanceStatus } from "../../../generated/prisma/client";
 
 // GET - Fetch attendance for a section on a specific date
 export async function GET(request: NextRequest) {

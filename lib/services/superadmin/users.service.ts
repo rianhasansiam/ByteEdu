@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "../../../app/generated/prisma/client";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { revalidateTag } from "next/cache";
 import {

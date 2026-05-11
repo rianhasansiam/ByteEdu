@@ -1,4 +1,4 @@
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "../../../../generated/prisma/client";
 
 export type TargetUser = {
   id: string;

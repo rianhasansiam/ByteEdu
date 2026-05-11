@@ -9,7 +9,7 @@ import { cached, invalidate, invalidateMany } from "@/lib/cache/cache.service";
 import { CACHE_KEYS } from "@/lib/cache/cache-keys";
 import { TAGS, getNoticeRelatedTags, revalidateTags } from "@/lib/cache/cache-tags";
 import { unstable_cache } from "next/cache";
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "../../app/generated/prisma/client";
 
 // ============================================
 // READS

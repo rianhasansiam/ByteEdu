@@ -2,7 +2,7 @@
 
 import { revalidateTag, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "../../app/generated/prisma/client";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 
 // ============================================

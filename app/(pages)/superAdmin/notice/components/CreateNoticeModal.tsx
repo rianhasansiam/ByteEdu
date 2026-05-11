@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { searchUsers, searchInstitutions } from "@/lib/services/superadmin";
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "../../../../generated/prisma/client";
 
 type UserResult = {
   id: string;
