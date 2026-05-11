@@ -75,7 +75,7 @@ export default function StudentAssignments() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{a.title}</h3>
-                    <p className="text-sm text-indigo-600">{a.subjectName} • {a.teacherName}</p>
+                    <p className="text-sm text-gray-600">{a.subjectName} • {a.teacherName}</p>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusStyles[a.status] || "bg-gray-100"}`}>
                     {a.status}
@@ -104,11 +104,11 @@ export default function StudentAssignments() {
                           value={content}
                           onChange={(e) => setContent(e.target.value)}
                           placeholder="Write your answer here..."
-                          className="w-full border rounded-lg p-3 text-sm resize-none h-24 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full border rounded-lg p-3 text-sm resize-none h-24 focus:ring-2 focus:ring-black focus:border-transparent"
                         />
                         <div className="flex gap-2">
                           <button onClick={() => handleSubmit(a.id)} disabled={submitting === a.id}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50">
+                            className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 disabled:opacity-50">
                             {submitting === a.id ? "Submitting..." : "Submit"}
                           </button>
                           <button onClick={() => { setActiveSubmit(null); setContent(""); }}
@@ -119,7 +119,7 @@ export default function StudentAssignments() {
                       </div>
                     ) : (
                       <button onClick={() => setActiveSubmit(a.id)}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+                        className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800">
                         Submit Assignment
                       </button>
                     )}

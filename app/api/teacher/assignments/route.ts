@@ -69,6 +69,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "You are not assigned to this section/subject" }, { status: 403 });
     }
 
+    // Defense-in-depth: verify section belongs to teacher's institution
+    const institutionId = session.user.institutionId;
+    if (institutionId) {
+      const sectionCheck = await prisma.section.findFirst({
+        where: { id: sectionId, class: { institutionId } },
+      });
+      if (!sectionCheck) {
+        return NextResponse.json({ error: "Section does not belong to your institution" }, { status: 403 });
+      }
+    }
+
     const assignment = await prisma.assignment.create({
       data: { title, description, sectionId, subjectId, teacherId: session.user.id, dueDate: new Date(dueDate) },
     });

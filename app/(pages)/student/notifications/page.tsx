@@ -52,7 +52,7 @@ export default function StudentNotifications() {
         </div>
         {unreadCount > 0 && (
           <button onClick={() => markRead()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+            className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800">
             Mark All Read
           </button>
         )}
@@ -79,7 +79,7 @@ export default function StudentNotifications() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className={`font-medium text-sm ${n.isRead ? "text-gray-600" : "text-gray-900"}`}>{n.title}</h3>
-                    {!n.isRead && <span className="w-2 h-2 rounded-full bg-indigo-600" />}
+                    {!n.isRead && <span className="w-2 h-2 rounded-full bg-black" />}
                   </div>
                   <p className="text-sm text-gray-500 mt-0.5">{n.message}</p>
                   <p className="text-xs text-gray-400 mt-1">
@@ -88,7 +88,7 @@ export default function StudentNotifications() {
                 </div>
                 {!n.isRead && (
                   <button onClick={() => markRead(n.id)}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 whitespace-nowrap">
+                    className="text-xs text-gray-700 hover:text-black whitespace-nowrap">
                     Mark read
                   </button>
                 )}

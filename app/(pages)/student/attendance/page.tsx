@@ -61,7 +61,7 @@ export default function StudentAttendance() {
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-sm border p-4">
           <p className="text-sm text-gray-500">Percentage</p>
-          <p className="text-2xl font-bold text-indigo-600">{stats.percentage}%</p>
+          <p className="text-2xl font-bold text-gray-900">{stats.percentage}%</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border p-4">
           <p className="text-sm text-gray-500">Total</p>

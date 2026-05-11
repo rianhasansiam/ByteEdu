@@ -50,6 +50,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title, section, and subject required" }, { status: 400 });
     }
 
+    // Verify teacher is assigned to this section/subject before uploading
+    const assignmentCheck = await prisma.teacherAssignment.findFirst({
+      where: { teacherId: session.user.id, sectionId, subjectId },
+    });
+    if (!assignmentCheck) {
+      return NextResponse.json({ error: "Not assigned to this section/subject" }, { status: 403 });
+    }
+
     const material = await prisma.studyMaterial.create({
       data: { title, description, fileUrl, fileType, sectionId, subjectId, teacherId: session.user.id },
     });

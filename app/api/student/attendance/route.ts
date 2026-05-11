@@ -50,9 +50,9 @@ export async function GET(request: NextRequest) {
         date: r.date.toISOString(),
         status: r.status,
         remarks: r.remarks,
-        className: r.section.class.name,
-        sectionName: r.section.name,
-        teacherName: r.teacher.name,
+        className: r.section?.class?.name || "Unknown",
+        sectionName: r.section?.name || "Unknown",
+        teacherName: r.teacher?.name || "Unknown",
       })),
       stats: { total, present, absent, late, excused, percentage },
     });

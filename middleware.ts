@@ -55,10 +55,14 @@ export default withAuth(
     }
 
     if (pathname.startsWith("/admin")) {
-      if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
-        return redirectToDashboard();
+      if (userRole === "ADMIN") {
+        return NextResponse.next();
       }
-      return NextResponse.next();
+      // SUPER_ADMIN can access admin routes only if they have an institution
+      if (userRole === "SUPER_ADMIN" && token?.institutionId) {
+        return NextResponse.next();
+      }
+      return redirectToDashboard();
     }
 
     if (pathname.startsWith("/teacher")) {

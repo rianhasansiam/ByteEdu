@@ -53,19 +53,19 @@ export default function StudentProfile() {
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-8 text-white">
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-8 text-white">
           <div className="flex items-center gap-5">
             <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold">
               {profile.name.charAt(0).toUpperCase()}
             </div>
             <div>
               <h2 className="text-2xl font-bold">{profile.name}</h2>
-              <p className="text-indigo-100 mt-1">
+              <p className="text-gray-300 mt-1">
                 {profile.className && profile.sectionName
                   ? `${profile.className} - Section ${profile.sectionName}`
                   : "Class not assigned"}
               </p>
-              {profile.roll && <p className="text-indigo-200 text-sm mt-0.5">Roll: {profile.roll}</p>}
+              {profile.roll && <p className="text-gray-400 text-sm mt-0.5">Roll: {profile.roll}</p>}
             </div>
           </div>
         </div>

@@ -81,9 +81,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    const institutionId = session.user.institutionId;
+    if (!institutionId) return NextResponse.json({ error: "No institution" }, { status: 400 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    // Verify routine belongs to this institution before deleting
+    const routine = await prisma.classRoutine.findFirst({
+      where: { id, section: { class: { institutionId } } },
+    });
+    if (!routine) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     await prisma.classRoutine.delete({ where: { id } });
     return NextResponse.json({ success: true });

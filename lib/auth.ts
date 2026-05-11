@@ -62,10 +62,31 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
         session.user.picture = token.picture as string | null | undefined;
-        session.user.institutionId = token.institutionId as string | null | undefined;
-        session.user.institutionName = token.institutionName as string | null | undefined;
+
+        // Refresh critical fields from DB to catch admin-side changes
+        // (e.g., institution assignment, role changes) without requiring re-login
+        try {
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, institutionId: true, institution: { select: { name: true } } },
+          });
+          if (freshUser) {
+            session.user.role = freshUser.role;
+            session.user.institutionId = freshUser.institutionId;
+            session.user.institutionName = freshUser.institution?.name || null;
+          } else {
+            // Fallback to token values if DB lookup fails
+            session.user.role = token.role as string;
+            session.user.institutionId = token.institutionId as string | null | undefined;
+            session.user.institutionName = token.institutionName as string | null | undefined;
+          }
+        } catch {
+          // Fallback to token values on error to avoid breaking auth
+          session.user.role = token.role as string;
+          session.user.institutionId = token.institutionId as string | null | undefined;
+          session.user.institutionName = token.institutionName as string | null | undefined;
+        }
       }
       return session;
     },

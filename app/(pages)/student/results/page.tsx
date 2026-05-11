@@ -55,7 +55,7 @@ export default function StudentResults() {
       <div className="bg-white rounded-xl shadow-sm border p-4 mb-6 flex gap-2">
         {["", "exam", "quiz", "assignment"].map((t) => (
           <button key={t} onClick={() => { setFilter(t); setLoading(true); }}
-            className={`px-4 py-2 rounded-lg text-sm transition-colors ${filter === t ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+            className={`px-4 py-2 rounded-lg text-sm transition-colors ${filter === t ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
             {t === "" ? "All" : t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}

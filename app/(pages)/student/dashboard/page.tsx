@@ -57,7 +57,7 @@ export default function StudentDashboard() {
           </svg>
         </div>
         <p className="text-gray-700 font-medium">{error || "Could not load dashboard"}</p>
-        <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+        <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800">
           Retry
         </button>
       </div>
@@ -85,7 +85,7 @@ export default function StudentDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome, {student.name.split(" ")[0]}! 👋
+          Welcome, {student.name?.split(" ")[0] || "Student"}! 👋
         </h1>
         <p className="text-gray-500 mt-1">
           {student.className && student.sectionName
@@ -101,8 +101,8 @@ export default function StudentDashboard() {
         <div className="bg-white rounded-xl shadow-sm border p-5">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-500">Attendance</p>
-            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -168,7 +168,7 @@ export default function StudentDashboard() {
                     <p className="text-xs text-gray-500">{exam.subjectName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-indigo-600">
+                    <p className="text-sm font-medium text-gray-900">
                       {new Date(exam.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </p>
                     {exam.startTime && <p className="text-xs text-gray-400">{exam.startTime}</p>}

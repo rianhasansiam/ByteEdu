@@ -25,10 +25,31 @@ export async function GET() {
     const institutionId = session.user.institutionId;
 
     if (!institutionId) {
-      return NextResponse.json(
-        { error: "Teacher not assigned to any institution" },
-        { status: 400 }
-      );
+      // Return valid empty dashboard for teachers without an institution assignment
+      const profile = await getTeacherProfile(teacherId);
+      return NextResponse.json({
+        success: true,
+        data: {
+          profile: profile ? {
+            id: profile.id,
+            name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+            picture: profile.picture,
+            teacherId: profile.teacherId,
+            institution: null,
+            assignedSubjects: [],
+            classTeacherOf: [],
+          } : { id: teacherId, name: session.user.name, email: session.user.email, institution: null, assignedSubjects: [], classTeacherOf: [] },
+          stats: {
+            totalStudents: 0,
+            attendanceSummary: { present: 0, absent: 0, late: 0, excused: 0 },
+            totalAssignedSections: 0,
+            totalSubjects: 0,
+            isClassTeacher: false,
+          },
+        },
+      });
     }
 
     // Fetch teacher profile and dashboard stats in parallel

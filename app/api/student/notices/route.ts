@@ -18,7 +18,7 @@ export async function GET() {
         OR: [
           { targetType: "all" },
           ...(institutionId ? [{ targetInstitutionId: institutionId }] : []),
-          { targetType: "role", targetRole: "STUDENT" },
+          ...(institutionId ? [{ targetType: "role" as const, targetRole: "STUDENT" as const, targetInstitutionId: institutionId }] : []),
         ],
       },
       orderBy: { createdAt: "desc" },

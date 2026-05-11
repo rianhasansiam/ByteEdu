@@ -20,7 +20,7 @@ export async function GET() {
         OR: [
           { targetInstitutionId: institutionId },
           { targetType: "all" },
-          { targetType: "role" },
+          { targetType: "role", targetInstitutionId: institutionId },
         ],
       },
       orderBy: { createdAt: "desc" },

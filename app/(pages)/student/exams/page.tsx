@@ -38,10 +38,10 @@ export default function StudentExams() {
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-semibold text-gray-900">{exam.name}</h3>
-          <p className="text-sm text-indigo-600 font-medium">{exam.subjectName}</p>
+          <p className="text-sm text-gray-600 font-medium">{exam.subjectName}</p>
         </div>
         {!isPast && (
-          <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
+          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
             {getDaysUntil(exam.date)}
           </span>
         )}

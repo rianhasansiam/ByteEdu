@@ -46,7 +46,7 @@ export default function StudentRoutine() {
             onClick={() => setActiveDay(day.dayIndex)}
             className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
               activeDay === day.dayIndex
-                ? "bg-indigo-600 text-white shadow-sm"
+                ? "bg-black text-white shadow-sm"
                 : "bg-white border text-gray-700 hover:bg-gray-50"
             }`}
           >
@@ -76,10 +76,10 @@ export default function StudentRoutine() {
             {activeRoutine.slots.map((slot, i) => (
               <div key={slot.id} className="p-5 flex items-center gap-5 hover:bg-gray-50 transition-colors">
                 <div className="text-center min-w-[80px]">
-                  <p className="text-sm font-bold text-indigo-600">{slot.startTime}</p>
+                  <p className="text-sm font-bold text-gray-900">{slot.startTime}</p>
                   <p className="text-xs text-gray-400">{slot.endTime}</p>
                 </div>
-                <div className="w-px h-12 bg-indigo-200" />
+                <div className="w-px h-12 bg-gray-200" />
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900">{slot.subjectName}</p>
                   <p className="text-sm text-gray-500">{slot.teacherName}</p>
