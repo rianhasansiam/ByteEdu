@@ -201,33 +201,34 @@ export default function StudentSignup() {
   // Show loading while checking session
   if (sessionStatus === "loading" || !session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
         <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="absolute top-0 right-0 w-72 h-72 bg-gray-200/30 rounded-full blur-3xl" />
+      <div className="max-w-md w-full relative z-10 animate-scale-in">
         {/* Card Container */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+        <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <Link href="/" className="text-3xl font-bold text-black mb-4 inline-block">
+          <div className="text-center mb-6 sm:mb-8">
+            <Link href="/" className="text-2xl sm:text-3xl font-bold text-black mb-3 sm:mb-4 inline-block">
               ByteEdu
             </Link>
-            <h2 className="text-2xl font-bold text-gray-900 mt-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mt-3 sm:mt-4">
               Create Student Account
             </h2>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-1.5 sm:mt-2 text-gray-500 text-sm">
               Register a new student
             </p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-center gap-2 text-sm animate-scale-in">
                 <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
@@ -236,7 +237,7 @@ export default function StudentSignup() {
             )}
 
             {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
+              <div className="bg-green-50 border border-green-200 text-green-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-center gap-2 text-sm animate-scale-in">
                 <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
@@ -545,7 +546,7 @@ export default function StudentSignup() {
             <button
               type="submit"
               disabled={loading || (isSuperAdmin && loadingInstitutions) || loadingClasses}
-              className="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="w-full py-2.5 sm:py-3 px-4 btn-primary rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-4 sm:mt-6"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -561,8 +562,8 @@ export default function StudentSignup() {
             </button>
 
             {/* Footer Link */}
-            <div className="text-center pt-4 border-t border-gray-100">
-              <p className="text-gray-600">
+            <div className="text-center pt-3 sm:pt-4 border-t border-gray-100/50">
+              <p className="text-gray-500 text-xs sm:text-sm">
                 Back to{" "}
                 <Link href={getBackLink()} className="font-medium text-black hover:text-gray-700 transition-colors">
                   Dashboard

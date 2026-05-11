@@ -113,26 +113,26 @@ export default function AdminSidebar() {
   const sidebarContent = (
     <>
       {/* Logo */}
-      <div className="p-6 border-b border-gray-800">
-        <Link href="/" className="text-2xl font-bold tracking-tight">
+      <div className="p-5 sm:p-6 border-b border-white/[0.06]">
+        <Link href="/" className="text-xl sm:text-2xl font-bold tracking-tight">
           ByteEdu
         </Link>
-        <p className="text-xs text-gray-400 mt-1">Admin Panel</p>
+        <p className="text-[10px] sm:text-xs text-gray-500 mt-1 uppercase tracking-widest">Admin Panel</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto">
-        <ul className="space-y-1">
+      <nav className="flex-1 py-3 sm:py-4 px-2.5 sm:px-3 overflow-y-auto dark-scrollbar">
+        <ul className="space-y-0.5">
           {menuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-sm ${
+                  className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 rounded-xl transition-all text-[13px] sm:text-sm sidebar-item-hover ${
                     isActive
-                      ? "bg-white text-black font-medium shadow-sm"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      ? "sidebar-item-active bg-white/[0.08] text-white font-medium"
+                      : "text-gray-400 hover:text-gray-200"
                   }`}
                 >
                   {item.icon}
@@ -145,44 +145,44 @@ export default function AdminSidebar() {
       </nav>
 
       {/* User Profile Section */}
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-3 sm:p-4 border-t border-white/[0.06]">
         {status === "loading" ? (
           <div className="animate-pulse">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gray-700" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/[0.06]" />
               <div className="flex-1 space-y-2">
-                <div className="h-3 bg-gray-700 rounded w-3/4" />
-                <div className="h-2 bg-gray-700 rounded w-1/2" />
+                <div className="h-3 bg-white/[0.06] rounded w-3/4" />
+                <div className="h-2 bg-white/[0.06] rounded w-1/2" />
               </div>
             </div>
-            <div className="h-9 bg-gray-800 rounded-lg" />
+            <div className="h-9 bg-white/[0.06] rounded-xl" />
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3 p-2 rounded-xl bg-white/[0.03]">
               {session?.user?.picture ? (
                 <Image
                   src={session.user.picture}
                   alt={session.user?.name || "User"}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 rounded-full object-cover"
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 rounded-xl object-cover ring-1 ring-white/10"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-medium">
+                <div className="w-9 h-9 rounded-xl bg-white/[0.08] flex items-center justify-center text-xs font-medium">
                   {session?.user?.name?.charAt(0).toUpperCase() || "A"}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{session?.user?.name}</p>
-                <p className="text-xs text-gray-400 truncate">{session?.user?.email}</p>
+                <p className="text-xs sm:text-sm font-medium truncate">{session?.user?.name}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 truncate">{session?.user?.email}</p>
               </div>
             </div>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-sm"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white/[0.05] hover:bg-white/[0.1] rounded-xl transition-all text-xs sm:text-sm text-gray-400 hover:text-white"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               Logout
@@ -198,10 +198,10 @@ export default function AdminSidebar() {
       {/* Mobile hamburger button */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 md:hidden bg-black text-white p-2 rounded-lg shadow-lg"
+        className="fixed top-3 left-3 z-50 md:hidden bg-black/90 backdrop-blur-sm text-white p-2.5 rounded-xl shadow-lg border border-white/[0.06]"
         aria-label="Open menu"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
@@ -209,15 +209,15 @@ export default function AdminSidebar() {
       {/* Mobile backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 mobile-menu-overlay z-40 md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-black text-white flex flex-col z-50 transition-transform duration-300 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed left-0 top-0 h-screen w-64 sidebar-gradient text-white flex flex-col z-50 transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0 mobile-sidebar-enter" : "-translate-x-full"
         } md:translate-x-0`}
       >
         {/* Mobile close button */}

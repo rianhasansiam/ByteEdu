@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, EffectFade } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
-import "swiper/css/effect-fade";
 
 const slides = [
   {
@@ -14,7 +13,7 @@ const slides = [
     description:
       "বাংলাদেশের স্কুলগুলোর জন্য তৈরি একটি পূর্ণাঙ্গ ডিজিটাল প্ল্যাটফর্ম, যা ভর্তি, উপস্থিতি, পরীক্ষা, ফলাফল ও একাডেমিক রেকর্ড সহজে পরিচালনা করতে সহায়তা করে।",
   },
-   {
+  {
     title: "Smart School Management System",
     description:
       "A comprehensive digital platform designed for Bangladeshi schools to efficiently manage admissions, attendance, examinations, results, and academic records.",
@@ -43,8 +42,8 @@ const slides = [
 
 export default function HeroSection() {
   return (
-    <section className="relative h-[600px] md:h-[65vh] bg-black text-white overflow-hidden">
-      {/* Background Image with Overlay */}
+    <section className="relative h-[500px] sm:h-[550px] md:h-[600px] lg:h-[65vh] overflow-hidden">
+      {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/hero-bg.png"
@@ -53,8 +52,15 @@ export default function HeroSection() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/60"></div>
+        {/* Animated mesh gradient overlay */}
+        <div className="absolute inset-0 mesh-gradient opacity-90" />
+        {/* Geometric pattern */}
+        <div className="absolute inset-0 geo-pattern" />
       </div>
+
+      {/* Floating decorative orbs */}
+      <div className="absolute top-1/4 left-[10%] w-64 h-64 rounded-full bg-white/[0.03] blur-3xl animate-float" />
+      <div className="absolute bottom-1/4 right-[10%] w-48 h-48 rounded-full bg-white/[0.04] blur-3xl animate-float" style={{ animationDelay: "2s" }} />
 
       {/* Swiper Content */}
       <Swiper
@@ -65,29 +71,33 @@ export default function HeroSection() {
         }}
         pagination={{
           clickable: true,
-          bulletClass: "swiper-pagination-bullet !w-3 !h-3 !bg-white/40 !opacity-100",
-          bulletActiveClass: "!bg-white",
+          bulletClass: "swiper-pagination-bullet !w-2.5 !h-2.5 !bg-white/30 !opacity-100",
+          bulletActiveClass: "!bg-white !w-6 !rounded-full",
         }}
         loop={true}
         speed={800}
         dir="ltr"
-        className="h-full w-full"
+        className="h-full w-full relative z-10"
       >
         {slides.map((slide, index) => (
           <SwiperSlide key={index} dir="ltr">
-            <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+            <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 flex items-center">
               <div className="w-full md:w-2/3 md:ml-auto text-center md:text-right">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                <h1 className="text-fluid-3xl md:text-fluid-4xl font-bold mb-4 sm:mb-6 text-white leading-tight animate-fade-in">
                   {slide.title}
                 </h1>
-                <p className="text-base md:text-lg text-gray-300 mb-8 max-w-xl ml-auto leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg text-gray-300/90 mb-6 sm:mb-8 max-w-xl ml-auto leading-relaxed animate-fade-in" style={{ animationDelay: "0.15s" }}>
                   {slide.description}
                 </p>
                 <a
                   href="/login"
-                  className="inline-block bg-gray-700 hover:bg-gray-600 text-white font-medium px-8 py-3 rounded-full transition-colors duration-200"
+                  className="inline-block bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-medium px-6 sm:px-8 py-2.5 sm:py-3 rounded-full transition-all duration-300 border border-white/20 hover:border-white/40 hover:shadow-lg hover:shadow-white/5 text-sm sm:text-base animate-fade-in"
+                  style={{ animationDelay: "0.3s" }}
                 >
                   Get Started Today
+                  <svg className="inline-block w-4 h-4 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </a>
               </div>
             </div>
@@ -95,18 +105,8 @@ export default function HeroSection() {
         ))}
       </Swiper>
 
-      <style jsx global>{`
-        .swiper-pagination {
-          bottom: 32px !important;
-        }
-        .swiper-pagination-bullet {
-          margin: 0 6px !important;
-          transition: all 0.3s ease;
-        }
-        .swiper-pagination-bullet:hover {
-          background: rgba(255, 255, 255, 0.6) !important;
-        }
-      `}</style>
+      {/* Bottom fade gradient */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent z-20" />
     </section>
   );
 }

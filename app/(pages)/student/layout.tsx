@@ -4,11 +4,11 @@ import { Toaster } from "react-hot-toast";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50/80">
       <StudentSidebar />
       <main className="md:ml-64 min-h-screen pt-14 md:pt-0">
         <Breadcrumb />
-        <div className="page-enter">{children}</div>
+        <div className="page-enter dash-content">{children}</div>
       </main>
       <Toaster
         position="top-right"

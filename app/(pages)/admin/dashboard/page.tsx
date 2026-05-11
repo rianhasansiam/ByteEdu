@@ -125,9 +125,9 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="space-y-4 sm:space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-xl p-6 mb-6 text-white">
+      <div className="welcome-banner rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 text-white relative overflow-hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {session?.user?.image ? (
@@ -144,10 +144,10 @@ export default function AdminDashboardPage() {
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-lg sm:text-2xl font-bold">
                 Welcome back, {session?.user?.name || "Admin"}!
               </h1>
-              <p className="text-gray-300 text-sm mt-0.5">
+              <p className="text-gray-400 text-xs sm:text-sm mt-0.5">
                 {data?.institution?.name || "Your Institution"} • Admin Panel
               </p>
             </div>
@@ -196,7 +196,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Main Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {[
           {
             title: "Teachers",
@@ -246,31 +246,31 @@ export default function AdminDashboardPage() {
         ].map((card) => (
           <div
             key={card.title}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all cursor-pointer"
+            className="dash-stat-card p-3.5 sm:p-5 cursor-pointer"
             onClick={card.onClick}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">{card.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-500">{card.title}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
               </div>
-              <div className={`${card.color} text-white p-3 rounded-lg`}>{card.icon}</div>
+              <div className={`${card.color} text-white p-2.5 sm:p-3 rounded-xl`}>{card.icon}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Secondary Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="dash-stat-card p-3 sm:p-4">
           <p className="text-xs font-medium text-gray-500">Total Users</p>
           <p className="text-lg font-bold text-gray-900">{data?.stats.totalUsers || 0}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="dash-stat-card p-3 sm:p-4">
           <p className="text-xs font-medium text-gray-500">Subjects</p>
           <p className="text-lg font-bold text-gray-900">{data?.stats.totalSubjects || 0}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="dash-stat-card p-3 sm:p-4">
           <p className="text-xs font-medium text-gray-500">Teacher Assignments</p>
           <p className="text-lg font-bold text-gray-900">{data?.stats.teacherAssignments || 0}</p>
         </div>
@@ -291,12 +291,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Today's Attendance */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Today&apos;s Attendance</h2>
+          <div className="dash-card p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Today&apos;s Attendance</h2>
             {totalAttendanceToday > 0 ? (
               <div>
                 <div className="flex items-center gap-4 mb-4">
@@ -341,8 +341,8 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
+          <div className="dash-card p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Recent Activity</h2>
             {recentActivityItems.length > 0 ? (
               <div className="space-y-3">
                 {recentActivityItems.map((item: any) => (
@@ -404,8 +404,8 @@ export default function AdminDashboardPage() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Admin Profile */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Profile</h2>
+          <div className="dash-card p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Your Profile</h2>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 {session?.user?.image ? (
@@ -450,8 +450,8 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="dash-card p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
             <div className="space-y-2">
               {[
                 { label: "Add Teacher", href: "/teacherSignup", color: "bg-green-50 text-green-700 hover:bg-green-100", icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
@@ -475,8 +475,8 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Institution Overview */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Institution Overview</h2>
+          <div className="dash-card p-4 sm:p-6 bg-gradient-to-br from-gray-50/80 to-white">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Institution Overview</h2>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label: "Admins", value: data?.stats.totalAdmins || 0 },

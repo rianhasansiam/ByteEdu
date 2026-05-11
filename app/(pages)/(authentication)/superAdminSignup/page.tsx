@@ -65,26 +65,27 @@ export default function SuperAdminSignup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="absolute top-0 right-0 w-72 h-72 bg-gray-200/30 rounded-full blur-3xl" />
+      <div className="max-w-md w-full relative z-10 animate-scale-in">
         {/* Card Container */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+        <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <Link href="/" className="text-3xl font-bold text-black mb-4 inline-block">
+          <div className="text-center mb-6 sm:mb-8">
+            <Link href="/" className="text-2xl sm:text-3xl font-bold text-black mb-3 sm:mb-4 inline-block">
               ByteEdu
             </Link>
-            <h2 className="text-2xl font-bold text-gray-900 mt-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mt-3 sm:mt-4">
               Super Admin Sign Up
             </h2>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-1.5 sm:mt-2 text-gray-500 text-sm">
               Create your administrator account
             </p>
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-center gap-2 text-sm animate-scale-in">
                 <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
@@ -94,7 +95,7 @@ export default function SuperAdminSignup() {
 
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                 Full Name
               </label>
               <div className="relative">
@@ -110,7 +111,7 @@ export default function SuperAdminSignup() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  className="block w-full pl-10 sm:pl-11 pr-3 py-2.5 sm:py-3 input-glass rounded-xl text-gray-900 placeholder-gray-400 text-sm"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -118,7 +119,7 @@ export default function SuperAdminSignup() {
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
@@ -134,7 +135,7 @@ export default function SuperAdminSignup() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  className="block w-full pl-10 sm:pl-11 pr-3 py-2.5 sm:py-3 input-glass rounded-xl text-gray-900 placeholder-gray-400 text-sm"
                   placeholder="Enter your email"
                 />
               </div>
@@ -142,7 +143,7 @@ export default function SuperAdminSignup() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -159,7 +160,7 @@ export default function SuperAdminSignup() {
                   minLength={6}
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  className="block w-full pl-10 sm:pl-11 pr-12 py-2.5 sm:py-3 input-glass rounded-xl text-gray-900 placeholder-gray-400 text-sm"
                   placeholder="Min 6 characters"
                 />
                 <button
@@ -183,7 +184,7 @@ export default function SuperAdminSignup() {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
                 Confirm Password
               </label>
               <div className="relative">
@@ -200,7 +201,7 @@ export default function SuperAdminSignup() {
                   minLength={6}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  className="block w-full pl-10 sm:pl-11 pr-12 py-2.5 sm:py-3 input-glass rounded-xl text-gray-900 placeholder-gray-400 text-sm"
                   placeholder="Re-enter your password"
                 />
                 <button
@@ -226,7 +227,7 @@ export default function SuperAdminSignup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 sm:py-3 px-4 btn-primary rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -242,8 +243,8 @@ export default function SuperAdminSignup() {
             </button>
 
             {/* Footer Link */}
-            <div className="text-center pt-4 border-t border-gray-100">
-              <p className="text-gray-600">
+            <div className="text-center pt-3 sm:pt-4 border-t border-gray-100/50">
+              <p className="text-gray-500 text-xs sm:text-sm">
                 Already have an account?{" "}
                 <Link href="/login" className="font-medium text-black hover:text-gray-700 transition-colors">
                   LogIn
