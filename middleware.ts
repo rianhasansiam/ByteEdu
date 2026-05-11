@@ -1,3 +1,8 @@
+// TODO: Next.js 16 deprecates middleware.ts in favor of proxy.ts convention.
+// Migration is blocked because next-auth/middleware (withAuth) depends on the
+// middleware pattern. Revisit when next-auth v5 (Auth.js) adds proxy support.
+// See: https://nextjs.org/docs/messages/middleware-to-proxy
+
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
@@ -94,7 +99,8 @@ export default withAuth(
         const pathname = req.nextUrl.pathname;
         
         // Public routes that don't require authentication
-        const publicRoutes = ["/", "/login", "/superAdminSignup"];
+        // NOTE: /superAdminSignup removed — Super Admins are created via seed script only
+        const publicRoutes = ["/", "/login"];
         
         // Allow public routes
         if (publicRoutes.some((route) => pathname === route || pathname.startsWith("/_next") || pathname.startsWith("/api/auth"))) {

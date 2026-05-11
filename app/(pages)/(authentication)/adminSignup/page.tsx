@@ -22,7 +22,7 @@ export default function AdminSignup() {
     confirmPassword: "",
   });
   const [institutions, setInstitutions] = useState<Institution[]>([]);
-  const [loadingInstitutions, setLoadingInstitutions] = useState(true);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,7 @@ export default function AdminSignup() {
   // Fetch institutions
   useEffect(() => {
     const fetchInstitutions = async () => {
+      setLoadingInstitutions(true);
       try {
         const response = await fetch("/api/institutions");
         const data = await response.json();
@@ -109,14 +110,9 @@ export default function AdminSignup() {
     }
   };
 
-  // Show loading while checking session
-  if (sessionStatus === "loading" || !session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
-        <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
+  // Derive a loading flag — form fields will be disabled, but the form renders immediately
+  const isSessionLoading = sessionStatus === "loading";
+  const isAuthenticated = sessionStatus === "authenticated" && !!session;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50/50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative">
@@ -136,6 +132,16 @@ export default function AdminSignup() {
               Register a new administrator
             </p>
           </div>
+
+          {isSessionLoading && (
+              <div className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Verifying session...
+              </div>
+            )}
 
           <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit}>
             {error && (
@@ -173,11 +179,11 @@ export default function AdminSignup() {
 
                   value={formData.institutionId}
                   onChange={handleChange}
-                  disabled={loadingInstitutions}
+                  disabled={isSessionLoading || loadingInstitutions}
                   className="block w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all appearance-none"
                 >
                   <option value="">
-                    {loadingInstitutions ? "Loading institutions..." : "Select an institution"}
+                    {isSessionLoading ? "Loading..." : loadingInstitutions ? "Loading institutions..." : "Select an institution"}
                   </option>
                   {institutions
                     .filter((inst) => inst.status === "active")
@@ -352,7 +358,7 @@ export default function AdminSignup() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || loadingInstitutions}
+              disabled={isSessionLoading || !isAuthenticated || loading || loadingInstitutions}
               className="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {loading ? (

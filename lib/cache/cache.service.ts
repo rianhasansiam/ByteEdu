@@ -111,17 +111,26 @@ export async function invalidate(key: string): Promise<void> {
 /**
  * Delete all keys matching a glob pattern (e.g. "admin:inst123:*").
  *
- * WARNING: Uses KEYS command which can be slow on large keyspaces.
- * For Upstash free tier this is fine. For production at scale,
- * consider SCAN-based iteration.
+ * Uses SCAN-based iteration which is production-safe — it never blocks
+ * the Redis event loop, unlike the KEYS command.
  */
 export async function invalidatePattern(pattern: string): Promise<void> {
   if (!redis) return;
   try {
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
+    let cursor = "0";
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        "MATCH",
+        pattern,
+        "COUNT",
+        100
+      );
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== "0");
   } catch (error) {
     console.error(`[Cache] Pattern DEL error for "${pattern}":`, error);
   }

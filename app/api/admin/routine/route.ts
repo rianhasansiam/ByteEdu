@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { verifyAllBelongToInstitution } from "@/lib/tenant-guard";
 
 export async function GET() {
   try {
@@ -55,9 +56,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    const institutionId = session.user.institutionId;
+    if (!institutionId) return NextResponse.json({ error: "No institution" }, { status: 400 });
+
     const { sectionId, subjectId, teacherId, dayOfWeek, startTime, endTime, roomNumber } = await request.json();
     if (!sectionId || !subjectId || !teacherId || dayOfWeek === undefined || !startTime || !endTime) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 });
+    }
+
+    // Tenant guard: verify all IDs belong to admin's institution
+    const tenantCheck = await verifyAllBelongToInstitution(institutionId, {
+      sectionId,
+      subjectId,
+      teacherId,
+    });
+    if (!tenantCheck.valid) {
+      return NextResponse.json({ error: tenantCheck.message }, { status: 403 });
     }
 
     const routine = await prisma.classRoutine.create({

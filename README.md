@@ -46,18 +46,30 @@ ByteEdu is a modern, multi-tenant SaaS platform designed to streamline school ad
 
 ---
 
-## 🎓 Student Panel (Coming Soon)
-*Currently under development.*
-- Will include features such as viewing personal attendance records, class schedules, notices, and academic performance.
+## 🎓 Student Panel (Academic Portal)
+*The Student panel provides students with secure access to their academic information, ensuring they stay informed and engaged.*
+
+### Features:
+- **Student Dashboard:** A centralized hub providing quick insights into personal attendance, upcoming exams, and recent notices.
+- **My Profile:** View personal details, enrolled class/section, and contact information.
+- **Attendance Records:** Check personal attendance history to track presence, absences, and lateness.
+- **Class Routines:** Access daily and weekly class schedules.
+- **Exam & Results:** View upcoming exam schedules and past academic results.
+- **Notices:** Read institution-wide announcements and updates.
 
 ---
 
 ## 🛠️ Technical Highlights & System Architecture
-- **Multi-Tenant Data Isolation:** Every database query is scoped by `institutionId`, ensuring complete privacy and security between different schools.
-- **Robust Security:** Double-layer security utilizing NextAuth middleware for route protection and strict backend API role guards (e.g., preventing a Teacher from accessing Admin API endpoints).
+- **Enterprise-Grade Security & Multi-Tenancy:**
+  - Complete data isolation with every database query strictly scoped by `institutionId`.
+  - Double-layer security utilizing NextAuth middleware for route protection and strict backend API role guards.
+  - Infrastructure hardened with rate limiting, production logging, and strict environment variable management.
+- **Advanced Caching & Performance:** Production-grade caching architecture utilizing a `Database -> Repository -> Service -> Redis -> Next.js Cache -> Redux` pipeline, complete with atomic SCAN-based Redis iteration for robust cache invalidation and zero stale UI state.
 - **Modern UI/UX:** 
+  - "Dark Crystalline" design language featuring glassmorphic sidebars and responsive gradient layouts.
   - Fully mobile-responsive design with off-canvas sidebars and backdrop overlays.
   - Premium typography (Inter font) and smooth page transition animations.
   - Dynamic breadcrumb navigation for deep links.
   - Skeleton loading states (shimmer effects) to prevent layout shifts during data fetching.
-- **Tech Stack:** Next.js (App Router), React, TypeScript, Tailwind CSS, Prisma ORM, PostgreSQL, NextAuth.js.
+  - Beautiful, non-blocking alert dialogs powered by SweetAlert2.
+- **Tech Stack:** Next.js (App Router), React, TypeScript, Tailwind CSS, Prisma ORM, PostgreSQL, Redis, NextAuth.js, Redux Toolkit, SweetAlert2.

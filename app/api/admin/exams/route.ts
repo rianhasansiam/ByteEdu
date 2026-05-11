@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { verifyAllBelongToInstitution } from "@/lib/tenant-guard";
 
 export async function GET() {
   try {
@@ -54,6 +55,15 @@ export async function POST(request: NextRequest) {
     const { name, subjectId, sectionId, date, startTime, endTime, roomNumber, syllabus, instructions } = await request.json();
     if (!name || !subjectId || !sectionId || !date) {
       return NextResponse.json({ error: "Name, subject, section, and date required" }, { status: 400 });
+    }
+
+    // Tenant guard: verify section and subject belong to admin's institution
+    const tenantCheck = await verifyAllBelongToInstitution(institutionId, {
+      sectionId,
+      subjectId,
+    });
+    if (!tenantCheck.valid) {
+      return NextResponse.json({ error: tenantCheck.message }, { status: 403 });
     }
 
     const exam = await prisma.exam.create({

@@ -108,9 +108,30 @@ export function getAttendanceRelatedTags(
 
 /** Bulk invalidate an array of cache tags (immediate) */
 export async function revalidateTags(tags: string[]): Promise<void> {
-  // Dynamic import to avoid issues in non-server contexts
-  const { revalidateTag } = await import("next/cache");
-  for (const tag of tags) {
-    revalidateTag(tag, { expire: 0 });
+  if (tags.length === 0) return;
+
+  try {
+    // Dynamic import to avoid issues in non-server contexts
+    const { revalidateTag } = await import("next/cache");
+
+    const results = await Promise.allSettled(
+      tags.map((tag) => {
+        try {
+          revalidateTag(tag, { expire: 0 });
+          return Promise.resolve();
+        } catch {
+          return Promise.reject(new Error(`Failed to revalidate tag: ${tag}`));
+        }
+      })
+    );
+
+    // Log any failed tag revalidations
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error("[CacheTags]", result.reason);
+      }
+    }
+  } catch (error) {
+    console.error("[CacheTags] Failed to import or run revalidateTag:", error);
   }
 }

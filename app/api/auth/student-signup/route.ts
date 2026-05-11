@@ -3,9 +3,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
+import { invalidateAfterUserMutation } from "@/lib/cache/invalidateAfterUserMutation";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const ip = getClientIp(request);
+    const rateCheck = await checkRateLimit(`student-signup:${ip}`, RATE_LIMITS.AUTH);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rateCheck.retryAfter) } }
+      );
+    }
+
     const session = await getServerSession(authOptions);
 
     if (
@@ -97,6 +109,18 @@ export async function POST(request: NextRequest) {
         section: { include: { class: true } },
       },
     });
+
+    // Invalidate all caches so dashboards reflect the new student
+    // Wrapped in try/catch — cache failure must never affect the user response
+    try {
+      await invalidateAfterUserMutation({
+        userId: user.id,
+        institutionId: user.institutionId,
+        role: "STUDENT",
+      });
+    } catch (cacheError) {
+      console.error("[student-signup] Cache invalidation failed (non-fatal):", cacheError);
+    }
 
     return NextResponse.json(
       {

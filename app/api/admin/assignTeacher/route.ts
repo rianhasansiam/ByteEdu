@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { verifyAllBelongToInstitution } from "@/lib/tenant-guard";
 
-async function getInstitutionId(session: any): Promise<string | null> {
+async function getInstitutionId(session: { user: { role: string; institutionId?: string | null } }): Promise<string | null> {
   if (session.user.role === "SUPER_ADMIN") {
-    // For super admin, they might pass institutionId as query param
     return session.user.institutionId || null;
   }
   return session.user.institutionId || null;
@@ -95,6 +95,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    const institutionId = await getInstitutionId(session);
+    if (!institutionId) {
+      return NextResponse.json({ error: "No institution" }, { status: 400 });
+    }
+
     const body = await request.json();
     const { teacherId, sectionId, subjectId } = body;
 
@@ -103,6 +108,16 @@ export async function POST(request: NextRequest) {
         { error: "Teacher, section, and subject are required" },
         { status: 400 }
       );
+    }
+
+    // Tenant guard: verify all IDs belong to admin's institution
+    const tenantCheck = await verifyAllBelongToInstitution(institutionId, {
+      teacherId,
+      sectionId,
+      subjectId,
+    });
+    if (!tenantCheck.valid) {
+      return NextResponse.json({ error: tenantCheck.message }, { status: 403 });
     }
 
     // Check if assignment already exists
