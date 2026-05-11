@@ -1,13 +1,8 @@
-// TODO: Next.js 16 deprecates middleware.ts in favor of proxy.ts convention.
-// Migration is blocked because next-auth/middleware (withAuth) depends on the
-// middleware pattern. Revisit when next-auth v5 (Auth.js) adds proxy support.
-// See: https://nextjs.org/docs/messages/middleware-to-proxy
-
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
     const userRole = token?.role as string;
