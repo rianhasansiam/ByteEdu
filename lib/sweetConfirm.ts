@@ -23,6 +23,7 @@ export async function sweetConfirm(
     confirmButtonText: options?.confirmText || "Yes, proceed",
     cancelButtonText: options?.cancelText || "Cancel",
     reverseButtons: true,
+    backdrop: "rgba(0,0,0,0.15)",
     customClass: {
       popup: "rounded-xl",
     },

@@ -145,7 +145,7 @@ export default function TeacherAssignmentsPage() {
 
       {/* Submissions Modal */}
       {viewSubmissions && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setViewSubmissions(null); setGrading(null); }}>
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setViewSubmissions(null); setGrading(null); }}>
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b flex justify-between items-center">
               <h2 className="text-lg font-semibold">Submissions ({submissions.length})</h2>

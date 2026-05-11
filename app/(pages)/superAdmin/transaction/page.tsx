@@ -288,7 +288,7 @@ export default function TransactionPage() {
 
       {/* Mark Paid Modal */}
       {showMarkModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Mark as Paid</h3>
             <div className="mb-4">
