@@ -69,10 +69,6 @@ export default function AdminSignup() {
       return;
     }
 
-    if (!formData.institutionId) {
-      setError("Please select an institution");
-      return;
-    }
 
     setLoading(true);
 
@@ -162,7 +158,7 @@ export default function AdminSignup() {
             {/* Institution Field */}
             <div>
               <label htmlFor="institutionId" className="block text-sm font-medium text-gray-700 mb-1">
-                Institution <span className="text-red-500">*</span>
+                Institution <span className="text-gray-400 text-xs font-normal">(Optional)</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -173,7 +169,7 @@ export default function AdminSignup() {
                 <select
                   id="institutionId"
                   name="institutionId"
-                  required
+
                   value={formData.institutionId}
                   onChange={handleChange}
                   disabled={loadingInstitutions}

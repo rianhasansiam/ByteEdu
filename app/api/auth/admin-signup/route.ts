@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
     const { name, email, phone, institutionId, password } = await request.json();
 
     // Validation
-    if (!name || !email || !phone || !institutionId || !password) {
+    if (!name || !email || !phone || !password) {
       return NextResponse.json(
-        { error: "All fields are required: name, email, phone, institutionId, and password" },
+        { error: "Required fields: name, email, phone, and password" },
         { status: 400 }
       );
     }
@@ -45,16 +45,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify institution exists
-    const institutionExists = await prisma.institution.findUnique({
-      where: { id: institutionId },
-    });
+    // Verify institution exists (only if provided)
+    if (institutionId) {
+      const institutionExists = await prisma.institution.findUnique({
+        where: { id: institutionId },
+      });
 
-    if (!institutionExists) {
-      return NextResponse.json(
-        { error: "Institution not found" },
-        { status: 404 }
-      );
+      if (!institutionExists) {
+        return NextResponse.json(
+          { error: "Institution not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // Hash password
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         phone,
-        institutionId,
+        institutionId: institutionId || null,
         password: hashedPassword,
         role: "ADMIN",
       },
